@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Block Slider - Dropdom Master v2</title>
+    <title>Magic Block - Dropdom Master</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800;900&display=swap');
         
         body {
             background-color: #0f172a;
@@ -18,994 +19,1120 @@
         }
 
         .hud-panel {
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(8px);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
         }
 
-        .shop-btn { transition: all 0.2s; position: relative; }
-        .shop-btn:active { transform: scale(0.9); }
+        .shop-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .shop-btn:active { transform: scale(0.92); }
         .shop-btn.active-tool {
-            border-color: #facc15;
-            box-shadow: 0 0 20px rgba(250, 204, 21, 0.5);
-            background: rgba(250, 204, 21, 0.15);
+            border-color: #facc15 !important;
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.6);
+            background: rgba(250, 204, 21, 0.15) !important;
+            transform: translateY(-2px);
+        }
+
+        .item-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: normal;
+            min-width: 150px;
+            max-width: 200px;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 100;
+            border: 1px solid #475569;
+            text-align: center;
+            line-height: 1.3;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            font-weight: 500;
+        }
+        
+        .group:hover .item-tooltip {
+            visibility: visible;
+            opacity: 1;
         }
 
         .tooltip {
-            visibility: hidden; opacity: 0; position: absolute; bottom: 125%; left: 50%;
-            transform: translateX(-50%); background: #1e293b; color: #fff;
-            padding: 6px 12px; border-radius: 6px; font-size: 11px; white-space: nowrap;
-            transition: all 0.2s; pointer-events: none; z-index: 100; border: 1px solid #334155;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 130%;
+            left: 50%;
+            transform: translateX(-50%) scale(0.9);
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            white-space: nowrap;
+            transition: all 0.2s ease-out;
+            pointer-events: none;
+            z-index: 100;
+            border: 1px solid #475569;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            font-weight: 600;
         }
-        .group:hover .tooltip { visibility: visible; opacity: 1; bottom: 135%; }
-
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
+        .group:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
         }
-        .pop-anim { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        .btn-disabled { opacity: 0.3; filter: grayscale(100%); cursor: not-allowed; pointer-events: none; }
-        .btn-blocked { opacity: 0.5; filter: sepia(100%) saturate(200%) hue-rotate(-50deg); cursor: not-allowed; pointer-events: none; }
-
-        .wizard-pulse { animation: pulse-purple 1.5s infinite; }
-        @keyframes pulse-purple {
-            0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.6); transform: scale(1); }
-            50% { box-shadow: 0 0 25px 10px rgba(168, 85, 247, 0); transform: scale(1.05); }
-            100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); transform: scale(1); }
+        .btn-disabled {
+            opacity: 0.5;
+            filter: grayscale(100%);
+            cursor: not-allowed !important;
+            pointer-events: none;
         }
 
         .popup-menu {
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             transform-origin: top center;
+            z-index: 70;
         }
-        .hidden-menu { opacity: 0; transform: translate(-50%, -20px) scale(0.8); pointer-events: none; }
-        .visible-menu { opacity: 1; transform: translate(-50%, 0) scale(1); pointer-events: auto; }
-        
-        .shield-active { border-color: #22d3ee !important; box-shadow: 0 0 20px #22d3ee !important; }
-        
-        .gray-wizard {
-            filter: grayscale(100%) brightness(0.7);
-            display: inline-block;
+        .popup-menu.hidden-menu {
+            opacity: 0;
+            transform: translate(-50%, -20px) scale(0.95);
+            pointer-events: none;
+        }
+
+        .shield-active {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6) !important;
         }
         
-        canvas { touch-action: none; -webkit-tap-highlight-color: transparent; }
+        .alert-yellow {
+            animation: pulse-yellow 1.5s infinite ease-in-out;
+            border-color: #eab308 !important;
+            box-shadow: inset 0 0 30px rgba(234, 179, 8, 0.15) !important;
+        }
+        .alert-red {
+            animation: pulse-red 0.8s infinite ease-in-out;
+            border-color: #ef4444 !important;
+            box-shadow: inset 0 0 50px rgba(239, 68, 68, 0.3) !important;
+        }
+        .alert-freeze {
+            animation: pulse-freeze 0.6s ease-out 2;
+            border-color: #22d3ee !important;
+            box-shadow: 0 0 30px #22d3ee, inset 0 0 20px #22d3ee !important;
+        }
+
+        @keyframes pulse-yellow { 0%, 100% { box-shadow: 0 0 5px #eab308; } 50% { box-shadow: 0 0 20px #eab308; } }
+        @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 10px #ef4444; } 50% { box-shadow: 0 0 30px #ef4444; } }
+        @keyframes pulse-freeze { 0% { opacity: 0.5; } 50% { opacity: 1; border-width: 4px; } 100% { opacity: 0.5; } }
 
         .floating-text {
-            position: absolute; pointer-events: none; font-weight: bold;
-            animation: float-up 1s ease-out forwards;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            z-index: 60;
-        }
-        @keyframes float-up {
-            0% { transform: translate(-50%, 0); opacity: 1; }
-            100% { transform: translate(-50%, -60px); opacity: 0; }
-        }
-
-        #inventory-lock-timer {
-            position: absolute; top: -5px; right: -5px; background: #ef4444;
-            color: white; font-size: 9px; font-weight: bold; padding: 2px 4px;
-            border-radius: 4px; border: 1px solid #000;
+            position: absolute;
+            animation: floatUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            pointer-events: none;
+            font-weight: 800;
+            z-index: 80;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            font-family: 'Rajdhani', sans-serif;
+            white-space: nowrap;
+            transform: translateX(-50%);
         }
 
-        /* Estilização do Slider de Volume */
-        input[type=range] {
-            -webkit-appearance: none;
-            background: transparent;
+        @keyframes floatUp {
+            0% { transform: translate(-50%, 0) scale(0.8); opacity: 0; }
+            20% { transform: translate(-50%, -20px) scale(1.1); opacity: 1; }
+            100% { transform: translate(-50%, -80px) scale(1); opacity: 0; }
         }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 6px;
-            cursor: pointer;
-            background: #334155;
-            border-radius: 3px;
+        
+        #combo-display {
+            text-shadow: 0 4px 8px rgba(0,0,0,0.8), 0 0 25px rgba(249, 115, 22, 0.8);
+            pointer-events: none;
+            font-style: italic;
+            transition: left 0.4s ease-out, top 0.4s ease-out, opacity 0.5s ease-in, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0;
+            z-index: 90;
+            font-size: 2rem; 
+            font-weight: 900;
+            filter: drop-shadow(0 0 5px rgba(249, 115, 22, 0.5));
         }
+        .combo-pulse { transform: translate(-50%, -50%) scale(1.3) rotate(-5deg); }
+        .fade-out-slow { opacity: 0 !important; transition: opacity 0.8s ease-out !important; }
+
+        .bounce-up { animation: bounce-up 2s infinite; }
+        @keyframes bounce-up { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+        /* Setas interativas */
+        .choice-arrow {
+            position: absolute;
+            z-index: 100;
+            color: white;
+            font-size: 2.5rem;
+            animation: bounce-arrow 1s infinite;
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8));
+            cursor: pointer; /* Adicionado cursor pointer */
+            transition: transform 0.2s;
+        }
+        .choice-arrow:hover {
+            transform: scale(1.2);
+            color: #facc15;
+        }
+        @keyframes bounce-arrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        input[type=range] { -webkit-appearance: none; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: #10b981;
-            cursor: pointer;
-            -webkit-appearance: none;
-            margin-top: -5px;
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: #e2e8f0; cursor: pointer; margin-top: -6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5); transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: #475569; border-radius: 2px;
         }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col items-center justify-center bg-slate-950">
+<body class="h-screen w-screen flex flex-col items-center justify-center bg-slate-900 gap-4 overflow-hidden select-none">
 
     <!-- HUD SUPERIOR -->
-    <div class="fixed top-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 md:gap-6">
-        <button id="shop-toggle" class="hud-panel p-3 rounded-full hover:bg-slate-800 transition-all active:scale-90 group border border-yellow-500/20 relative">
-            <span class="text-xl md:text-2xl">🛒</span>
-            <div class="tooltip">Loja de Itens</div>
+    <div class="fixed top-4 left-1/2 -translate-x-1/2 z-60 flex gap-6 items-center w-full justify-center px-4 max-w-md">
+        
+        <button id="inventory-toggle" class="hud-panel p-3 rounded-xl hover:scale-105 transition-all active:scale-95 group border border-blue-500/30 relative shadow-lg shadow-blue-900/20">
+            <span class="text-2xl filter drop-shadow-md text-blue-400"><i class="fas fa-briefcase"></i></span>
+            <div class="tooltip">Inventário</div>
+            <span id="total-inventory-count" class="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full hidden font-bold border border-slate-900">0</span>
         </button>
 
-        <!-- Contentor de Áudio -->
-        <div class="flex items-center gap-2 group/audio">
-            <button id="audio-toggle" class="hud-panel p-3 rounded-full hover:bg-slate-800 transition-all active:scale-90 border border-emerald-500/20 relative">
-                <span id="audio-icon" class="text-xl md:text-2xl">🔊</span>
-            </button>
-            <div class="hud-panel px-3 py-2 flex items-center gap-2 opacity-0 -translate-x-4 pointer-events-none group-hover/audio:opacity-100 group-hover/audio:translate-x-0 group-hover/audio:pointer-events-auto transition-all duration-300">
-                <span class="text-xs font-bold text-emerald-400">VOL</span>
-                <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1.0" class="w-16 md:w-24">
+        <div class="hud-panel p-2 flex flex-col items-center gap-1 w-28 relative transition-all duration-300 mx-2 shadow-lg shadow-purple-900/20" id="wizard-container">
+            <div class="text-3xl filter drop-shadow-[0_0_10px_rgba(147,51,234,0.6)] transform hover:scale-110 transition-transform cursor-help" title="Feiticeiro">🧙‍♂️</div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-600 relative">
+                <div id="wizard-bar" class="h-full bg-gradient-to-r from-purple-900 via-purple-600 to-purple-400 w-0 transition-all duration-500"></div>
             </div>
+            <div id="wizard-timer" class="absolute -bottom-5 text-[10px] font-bold text-cyan-400 hidden bg-slate-900/80 px-2 rounded"></div>
         </div>
 
-        <button id="inventory-toggle" class="hud-panel p-3 rounded-full hover:bg-slate-800 transition-all active:scale-90 group border border-blue-500/20 relative">
-            <span class="text-xl md:text-2xl">🎒</span>
-            <div class="tooltip" id="inv-tooltip">Seu Inventário</div>
-            <span id="total-inventory-count" class="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full hidden border border-slate-900">0</span>
-            <div id="inventory-lock-timer" class="hidden">30s</div>
+        <button id="menu-toggle" class="hud-panel p-3 rounded-xl hover:scale-105 transition-all active:scale-95 group border border-gray-500/30 relative shadow-lg">
+            <span class="text-2xl filter drop-shadow-md text-gray-200"><i class="fas fa-cog"></i></span>
+            <div class="tooltip">Opções</div>
         </button>
     </div>
 
-    <!-- MENUS -->
-    <div id="shop-menu" class="fixed top-24 left-1/2 z-50 flex flex-col gap-3 w-[340px] popup-menu hidden-menu bg-slate-900/95 p-5 rounded-2xl border border-yellow-500/30 shadow-2xl backdrop-blur-xl">
-        <div class="w-full text-center text-yellow-500 font-bold text-xs tracking-widest mb-1 uppercase">Mercado Arcano</div>
-        <div class="grid grid-cols-4 gap-3" id="shop-items-container"></div>
+    <!-- PAINEL DE ESCOLHA (STUCK) -->
+    <div id="choice-message" class="fixed top-1/3 left-1/2 -translate-x-1/2 z-[85] text-center hidden pointer-events-none">
+        <h2 class="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-pulse">FAÇA SUA ESCOLHA</h2>
     </div>
 
-    <div id="inventory-menu" class="fixed top-24 left-1/2 z-50 flex flex-col gap-3 w-[340px] popup-menu hidden-menu bg-slate-900/95 p-5 rounded-2xl border border-blue-500/30 shadow-2xl backdrop-blur-xl">
-        <div class="w-full text-center text-blue-400 font-bold text-xs tracking-widest mb-1 uppercase">Sua Bolsa</div>
-        <div class="grid grid-cols-4 gap-3" id="inventory-items-container"></div>
+    <!-- SETAS DE ESCOLHA INTERATIVAS -->
+    <div id="arrow-inventory" class="choice-arrow hidden" style="top: 80px; left: calc(50% - 90px);">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+    <div id="arrow-preview" class="choice-arrow hidden" style="bottom: 120px; left: 50%; transform: translateX(-50%);">
+        <i class="fas fa-arrow-down"></i>
     </div>
 
-    <!-- HUD STATUS (ESQUERDA) -->
-    <div class="fixed top-4 left-4 z-20 flex flex-col gap-3 scale-90 md:scale-100 origin-top-left">
-        <div class="hud-panel px-4 py-3 flex items-center gap-3 w-48 border-l-4 border-yellow-500">
-            <div class="w-9 h-9 rounded-lg bg-yellow-500 flex items-center justify-center shadow-lg text-slate-900 font-black text-xl">💰</div>
-            <div>
-                <p class="text-[10px] uppercase font-bold opacity-50">Créditos</p>
-                <p id="credits-display" class="text-xl font-bold text-yellow-400 leading-none">0</p>
-            </div>
-        </div>
-        <div class="hud-panel px-4 py-3 flex items-center gap-3 w-48 border-l-4 border-blue-500">
-            <div class="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center shadow-lg text-white font-black text-xl">✨</div>
-            <div>
-                <p class="text-[10px] uppercase font-bold opacity-50">Score</p>
-                <p id="score-display" class="text-xl font-bold text-blue-400 leading-none">0</p>
-            </div>
-        </div>
-        <div class="hud-panel px-4 py-3 flex flex-col gap-1 w-48 border-l-4 border-emerald-500">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center shadow-lg text-white font-black text-xl">🆙</div>
-                <div>
-                    <p class="text-[10px] uppercase font-bold opacity-50">Nível</p>
-                    <p id="level-display" class="text-xl font-bold text-emerald-400 leading-none">1</p>
+    <!-- PAINEL DE USO DE ITEM -->
+    <div id="item-use-panel" class="fixed top-24 left-1/2 -translate-x-1/2 z-[75] bg-slate-900/95 border border-yellow-500/50 p-4 rounded-xl shadow-2xl backdrop-blur-md hidden flex-col items-center gap-2 transform transition-all">
+        <p class="text-sm font-bold text-yellow-400" id="item-use-msg">Clique num bloco para usar!</p>
+        <button id="cancel-item-btn" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-4 py-1.5 rounded-lg border border-slate-600 transition-colors">Cancelar</button>
+    </div>
+
+    <!-- MENU PRINCIPAL -->
+    <div id="main-menu" class="fixed inset-0 z-[90] bg-black/95 flex items-center justify-center hidden opacity-0 transition-opacity duration-300 backdrop-blur-md">
+        <div class="bg-slate-800 border border-slate-600 p-8 rounded-2xl w-80 shadow-2xl transform scale-100 transition-transform duration-300" id="menu-content">
+            <h2 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 text-center mb-8 tracking-wider filter drop-shadow-sm">MAGIC<br>BLOCK</h2>
+            
+            <div class="flex flex-col gap-4">
+                <button id="menu-continue" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg border-b-4 border-slate-900 active:border-b-0 active:translate-y-1 btn-disabled flex items-center justify-center gap-2">
+                    <i class="fas fa-play"></i> CONTINUAR
+                </button>
+                
+                <button id="menu-newgame" class="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-900/40 border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 flex items-center justify-center gap-2">
+                    <i class="fas fa-redo"></i> NOVO JOGO
+                </button>
+
+                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 mt-4">
+                    <label class="text-[10px] text-gray-400 uppercase font-bold block mb-3 tracking-widest">Volume do Áudio</label>
+                    <div class="flex items-center gap-3 text-gray-400">
+                        <i class="fas fa-volume-off text-xs"></i>
+                        <input type="range" id="volume-slider" min="0" max="100" value="50" class="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        <i class="fas fa-volume-up text-xs"></i>
+                    </div>
                 </div>
             </div>
-            <div class="w-full h-1.5 bg-slate-800 rounded-full mt-1 overflow-hidden">
-                <div id="xp-bar" class="h-full bg-emerald-500 w-0 transition-all duration-300"></div>
-            </div>
-        </div>
-        <div id="combo-box" class="hud-panel px-4 py-2 w-48 hidden opacity-0 transition-all border border-orange-500/50">
-            <p class="text-center font-black text-orange-500 italic text-xl">COMBO x<span id="combo-count">1</span></p>
         </div>
     </div>
 
-    <!-- HUD RECORDE E MAGO (DIREITA) -->
-    <div class="fixed top-4 right-4 z-20 flex flex-col gap-3 items-end scale-90 md:scale-100 origin-top-right">
-        <div class="hud-panel px-4 py-2 text-right border-r-4 border-slate-700 min-w-[140px]">
-            <p class="text-[10px] uppercase font-bold opacity-50">Recorde</p>
-            <p id="best-display" class="text-xl font-bold text-slate-300">0</p>
-        </div>
-        <div class="hud-panel p-3 flex flex-col items-center gap-2 w-32 relative transition-all duration-300" id="wizard-container">
-            <span id="wizard-label" class="text-[10px] uppercase font-black text-purple-400 tracking-tighter">O Mago</span>
-            <div id="wizard-icon" class="text-4xl transition-transform duration-300">🧙‍♂️</div>
-            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mt-1">
-                <div id="wizard-bar" class="h-full bg-gradient-to-r from-purple-600 to-fuchsia-400 w-0 transition-all duration-500"></div>
+    <!-- INVENTÁRIO (POPUP) -->
+    <div id="inventory-menu" class="fixed top-24 left-1/2 z-70 flex gap-4 flex-wrap justify-center max-w-[340px] popup-menu hidden-menu bg-slate-900/95 p-5 rounded-2xl border border-blue-500/30 shadow-2xl backdrop-blur-md">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold px-3 py-0.5 rounded shadow tracking-widest border border-blue-400">SUA MOCHILA</div>
+        <div id="inventory-items-container" class="flex gap-3 flex-wrap justify-center min-h-[50px]"></div>
+    </div>
+
+    <!-- HUD LATERAIS (PONTUAÇÃO) -->
+    <div class="fixed top-28 left-4 z-40 flex flex-col gap-3">
+        <div class="hud-panel px-4 py-2 flex flex-col gap-1 w-44 border-l-4 border-blue-500 shadow-lg shadow-blue-900/10">
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-[10px] border border-blue-500/50">★</div>
+                <span class="text-[10px] uppercase opacity-70 leading-none tracking-wide text-blue-200">Pontuação Atual</span>
             </div>
-            <div id="wizard-timer" class="absolute -bottom-6 text-xs font-bold text-cyan-400 hidden">30s</div>
+            <p id="score-display" class="text-2xl font-bold text-white leading-none text-right font-mono tracking-tighter">0</p>
+        </div>
+
+        <div class="hud-panel px-4 py-2 flex flex-col gap-1 w-44 border-l-4 border-orange-500 shadow-lg shadow-orange-900/10">
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold text-[10px] border border-orange-500/50">🏆</div>
+                <span class="text-[10px] uppercase opacity-70 leading-none tracking-wide text-orange-200">Recorde</span>
+            </div>
+            <p id="best-display" class="text-2xl font-bold text-white leading-none text-right font-mono tracking-tighter">0</p>
         </div>
     </div>
 
     <!-- TABULEIRO -->
-    <div id="game-wrapper" class="relative p-1.5 rounded-2xl bg-slate-800 shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-slate-700 mt-10">
-        <canvas id="gameCanvas" class="rounded-xl bg-slate-900 block"></canvas>
-        <div id="toast" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900/90 text-white px-6 py-3 rounded-full border border-white/20 shadow-2xl text-sm font-bold opacity-0 pointer-events-none transition-all z-[60] whitespace-nowrap text-center"></div>
-        <div id="freeze-overlay" class="absolute inset-0 bg-cyan-500/10 pointer-events-none opacity-0 transition-opacity duration-700 z-10 border-8 border-cyan-400/20 rounded-xl"></div>
-        <div id="overlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center z-[70] hidden opacity-0 transition-all duration-1000 rounded-xl">
-            <h1 class="text-6xl font-black text-white mb-2 tracking-tighter italic">FIM DE JOGO</h1>
-            <p class="text-slate-500 mb-10 text-xs uppercase tracking-[0.3em]">Sua jornada arcana terminou</p>
-            <div class="flex gap-12 text-center mb-12">
-                <div><p class="text-[10px] uppercase font-bold opacity-40 mb-1">Pontos</p><p id="final-score" class="text-4xl font-black text-blue-500">0</p></div>
-                <div><p class="text-[10px] uppercase font-bold opacity-40 mb-1">Recorde</p><p id="final-best" class="text-4xl font-black text-purple-500">0</p></div>
+    <div id="game-wrapper" class="relative p-1.5 rounded-2xl bg-slate-800 shadow-2xl border border-slate-700 mt-28 transition-all duration-300 mx-auto">
+        <div id="combo-display" class="absolute z-40 opacity-0 text-orange-400 font-black uppercase text-center select-none pointer-events-none drop-shadow-md">
+            COMBO<br>x2
+        </div>
+
+        <canvas id="gameCanvas" class="rounded-xl bg-slate-900 block cursor-pointer touch-none"></canvas>
+        
+        <div id="toast" class="absolute top-16 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-2xl text-sm font-bold opacity-0 pointer-events-none transition-all duration-300 z-50 whitespace-nowrap border border-red-500/50 flex items-center gap-2 transform translate-y-4">
+            <i class="fas fa-exclamation-circle text-red-500"></i> <span id="toast-msg">Ação Inválida</span>
+        </div>
+        
+        <div id="freeze-overlay" class="absolute inset-0 bg-cyan-500/10 pointer-events-none opacity-0 transition-opacity duration-500 z-10 border-4 border-cyan-400/30 rounded-xl"></div>
+        
+        <div id="overlay" class="absolute inset-0 bg-black/95 flex flex-col items-center justify-center z-50 hidden opacity-0 transition-opacity duration-500 rounded-xl backdrop-blur-sm">
+            <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 mb-2 tracking-tighter filter drop-shadow-lg">GAME OVER</h1>
+            <div class="w-full max-w-[200px] h-1 bg-slate-700 rounded-full mb-8"></div>
+            <div class="grid grid-cols-2 gap-8 text-center mb-10 w-full px-12">
+                <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs uppercase text-blue-400 font-bold mb-1">Pontuação</p>
+                    <p id="final-score" class="text-3xl font-mono font-bold text-white">0</p>
+                </div>
+                <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs uppercase text-orange-400 font-bold mb-1">Recorde</p>
+                    <p id="final-best" class="text-3xl font-mono font-bold text-white">0</p>
+                </div>
             </div>
-            <button id="restart-btn" class="px-12 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_10px_200px_rgba(37,99,235,0.3)] uppercase text-sm tracking-widest">Tentar Novamente</button>
+            
+            <button id="restart-btn" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-900/50 uppercase tracking-widest text-sm flex items-center gap-2">
+                <i class="fas fa-redo"></i> Jogar Novamente
+            </button>
         </div>
     </div>
 
     <script>
-        /** @type {HTMLCanvasElement} */
+        // Variáveis DOM
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        
-        // Elementos de UI
+        const gameWrapperEl = document.getElementById('game-wrapper');
         const scoreEl = document.getElementById('score-display');
-        const creditsEl = document.getElementById('credits-display');
         const bestEl = document.getElementById('best-display');
-        const levelEl = document.getElementById('level-display');
-        const xpBarEl = document.getElementById('xp-bar');
-        const wizardBarEl = document.getElementById('wizard-bar');
-        const wizardIcon = document.getElementById('wizard-icon');
-        const wizardContainer = document.getElementById('wizard-container');
-        const wizardTimerEl = document.getElementById('wizard-timer');
-        const comboEl = document.getElementById('combo-box');
-        const comboCountEl = document.getElementById('combo-count');
-        const shopMenu = document.getElementById('shop-menu');
-        const inventoryMenu = document.getElementById('inventory-menu');
-        const totalInvCount = document.getElementById('total-inventory-count');
-        const inventoryToggleBtn = document.getElementById('inventory-toggle');
-        const inventoryLockTimerEl = document.getElementById('inventory-lock-timer');
-        const invTooltip = document.getElementById('inv-tooltip');
+        const finalScoreEl = document.getElementById('final-score');
+        const finalBestEl = document.getElementById('final-best');
         const overlay = document.getElementById('overlay');
         const restartBtn = document.getElementById('restart-btn');
         const toastEl = document.getElementById('toast');
-        const freezeOverlay = document.getElementById('freeze-overlay');
-        const finalScoreEl = document.getElementById('final-score');
-        const finalBestEl = document.getElementById('final-best');
-
-        // Configuração de Áudio
-        const audioIcon = document.getElementById('audio-icon');
-        const audioToggleBtn = document.getElementById('audio-toggle');
+        const toastMsg = document.getElementById('toast-msg');
+        const comboDisplayEl = document.getElementById('combo-display');
+        const inventoryContainer = document.getElementById('inventory-items-container');
+        const totalInventoryCountEl = document.getElementById('total-inventory-count');
+        const inventoryMenuEl = document.getElementById('inventory-menu');
+        const inventoryToggleBtn = document.getElementById('inventory-toggle');
+        const menuToggleBtn = document.getElementById('menu-toggle');
+        const mainMenuEl = document.getElementById('main-menu');
+        const menuContentEl = document.getElementById('menu-content');
+        const menuContinueBtn = document.getElementById('menu-continue');
+        const menuNewGameBtn = document.getElementById('menu-newgame');
         const volumeSlider = document.getElementById('volume-slider');
+        const wizardBarEl = document.getElementById('wizard-bar');
+        const wizardContainerEl = document.getElementById('wizard-container');
+        const wizardTimerEl = document.getElementById('wizard-timer');
+        const itemUsePanel = document.getElementById('item-use-panel');
+        const itemUseMsg = document.getElementById('item-use-msg');
+        const cancelItemBtn = document.getElementById('cancel-item-btn');
         
-        // Fontes fiáveis da Google Cloud (usadas no Codeskulptor)
-        const BGM_URL = 'https://commondatastorage.googleapis.com/codeskulptor-assets/chime_cascade.mp3'; 
-        const SFX_MOVE_URL = 'https://commondatastorage.googleapis.com/codeskulptor-assets/jump.ogg';
-        const SFX_EXPLODE_URL = 'https://commondatastorage.googleapis.com/codeskulptor-assets/collision.mp3'; // Som de explosão/limpeza
+        // Elementos de Decisão (Stuck State)
+        const choiceMessage = document.getElementById('choice-message');
+        const arrowInventory = document.getElementById('arrow-inventory');
+        const arrowPreview = document.getElementById('arrow-preview');
 
-        let bgm = null;
-        let moveSfx = null;
-        let explodeSfx = null;
-        let audioAvailable = false;
-        let isMuted = false;
-        let hasInteracted = false;
-
-        function setupAudio() {
-            try {
-                bgm = new Audio(BGM_URL);
-                bgm.loop = true;
-                bgm.volume = 1.0; 
-                bgm.preload = 'auto';
-
-                moveSfx = new Audio(SFX_MOVE_URL);
-                moveSfx.volume = 0.8;
-                moveSfx.preload = 'auto';
-
-                explodeSfx = new Audio(SFX_EXPLODE_URL);
-                explodeSfx.volume = 0.9;
-                explodeSfx.preload = 'auto';
-                
-                audioAvailable = true;
-                console.log("Sistema de áudio inicializado com sons de movimento e explosão.");
-            } catch (e) {
-                console.error("Browser não suporta áudio nativo.");
-                audioAvailable = false;
-            }
-        }
-
-        function toggleAudio() {
-            if (!audioAvailable || !bgm) return;
-            isMuted = !isMuted;
-            if (isMuted) {
-                bgm.pause();
-                audioIcon.textContent = '🔇';
-                showToast("Áudio Desativado");
-            } else {
-                bgm.play().then(() => {
-                    audioIcon.textContent = '🔊';
-                    showToast("Áudio Ativado ✨");
-                }).catch(() => {
-                    showToast("Clica no ecrã para som");
-                });
-            }
-        }
-
-        volumeSlider.oninput = (e) => {
-            const vol = parseFloat(e.target.value);
-            if (!audioAvailable) return;
-            if (bgm) bgm.volume = vol;
-            if (moveSfx) moveSfx.volume = Math.min(1.0, vol * 0.8);
-            if (explodeSfx) explodeSfx.volume = Math.min(1.0, vol * 0.9);
-            
-            if (vol == 0) audioIcon.textContent = '🔇';
-            else if (!isMuted) audioIcon.textContent = '🔊';
-        };
-
-        function startAudio() {
-            if (!hasInteracted && audioAvailable && bgm) {
-                hasInteracted = true;
-                bgm.play().then(() => {
-                    showToast("Música Iniciada 🎧");
-                }).catch(() => {
-                    hasInteracted = false; 
-                });
-                
-                if(hasInteracted) {
-                    window.removeEventListener('mousedown', startAudio);
-                    window.removeEventListener('touchstart', startAudio);
-                }
-            }
-        }
-
-        function playExplodeSound() {
-            if (audioAvailable && !isMuted && explodeSfx && explodeSfx.volume > 0) {
-                try {
-                    explodeSfx.currentTime = 0;
-                    explodeSfx.play().catch(() => {});
-                } catch(e) {}
-            }
-        }
-
-        // Lógica do Jogo
-        const COLS = 8;
-        const ROWS = 10;
+        // Configurações
+        const COLORS = { 1: '#ef4444', 2: '#22c55e', 3: '#3b82f6', 4: '#a855f7' };
+        const COLS = 8, ROWS = 10; 
         let CELL_SIZE = 40;
-        const COLORS = { 1: '#3b82f6', 2: '#8b5cf6', 3: '#ec4899', 4: '#f97316' };
+
+        // Estado
+        let blocks = [], nextRowBlocks = [], particles = [];
+        let score = 0, bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
+        let inventory = JSON.parse(localStorage.getItem('dropdom_inventory')) || { hammer: 1, fire: 1, superfire: 0, shield: 0, dragon: 0, tractor: 0, lightning: 0 };
+        const WIZARD_MAX = 100, WIZARD_STEP = 20;
+
+        let comboHideTimer = null; 
+        let wizardCharge = 0, wizardShieldActive = false, wizardShieldTime = 0, shieldInterval = null;
+        let gameActive = false, isProcessingTurn = false, isRefilling = false, comboMultiplier = 0;
+        let activeTool = null, selectedBlock = null, dragStartX = 0, blockStartX = 0, originalC = 0;
+        let isGameOverSequence = false;
+        let turnCounter = 0;
+        let animationFrameId = null;
+        let hasGameStarted = false;
+        let isStuckMode = false;
+        let turnLinesCleared = 0; 
+        let waitingForForceUp = false; // Flag para impedir mana no force up
+
+        // Áudio
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let masterVolume = 0.5;
+
+        function playTone(freq, type, duration, vol = 1) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (masterVolume <= 0.01) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol * masterVolume, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playMoveSound() { playTone(300, 'sine', 0.05, 0.2); }
+        function playFreezeSound() { playTone(600, 'triangle', 0.1, 0.3); playTone(1200, 'sine', 0.3, 0.2); }
+        function playErrorSound() { playTone(150, 'sawtooth', 0.15, 0.4); }
+        function playExplosionSound() { 
+            if (masterVolume <= 0.01) return;
+            const duration = 0.15;
+            const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * duration, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < buffer.length; i++) data[i] = Math.random() * 2 - 1;
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.2 * masterVolume, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            noise.connect(gain);
+            gain.connect(audioCtx.destination);
+            noise.start();
+        }
+
+        // --- FUNÇÕES AUXILIARES ---
+        function showToast(msg, type='info') { 
+            toastMsg.innerHTML = type === 'error' ? `<i class="fas fa-exclamation-circle text-red-500 mr-1"></i>${msg}` : msg;
+            toastEl.style.opacity = '1'; 
+            setTimeout(() => toastEl.style.opacity = '0', 2000); 
+        }
+
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({ x, y, vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.5) * 12, life: 1.2, color });
+            }
+        }
+
+        function createFloatingText(x, y, content, color) {
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.style.left = `${x}px`; el.style.top = `${y}px`; el.style.color = color;
+            el.innerHTML = content;
+            gameWrapperEl.appendChild(el);
+            setTimeout(() => el.remove(), 1200);
+        }
         
-        const ITEMS = {
-            hammer: { name: 'Martelo', icon: '🔨', price: 50, desc: 'Diminui bloco em 1 (🚫 Gelo)' },
-            tractor: { name: 'Trator', icon: '🚜', price: 75, desc: 'Remove bloco focado (🚫 Gelo)' },
-            lightning: { name: 'Raio', icon: '⚡', price: 100, desc: 'Explosão em cruz (🚫 Gelo)' },
-            fire: { name: 'Fogo', icon: '🔥', price: 250, desc: 'Derrete 1 nível de gelo' },
-            superfire: { name: 'S. Fogo', icon: '🔥🔥', price: 300, desc: 'Derrete gelo da linha' },
-            shield: { name: 'Anulação', icon: '🧙‍♂️', price: 400, desc: 'Para o Mago (30s)' },
-            dragon: { name: 'Dragão', icon: '🐉', price: 500, desc: 'Derrete todo o gelo global' },
-            sledgehammer: { name: 'Marreta', icon: '⚒️', price: 700, desc: 'Destrói TUDO (Lança Baú se estiver no Gelo)' }
-        };
-
-        let blocks = [];
-        let nextRowBlocks = [];
-        let particles = [];
-        let floatingTexts = []; 
-        let score = 0;
-        let level = 1;
-        let credits = parseInt(localStorage.getItem('dropdom_credits')) || 100; 
-        let bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
-        let scoreAtLastLevel = 0;
-        let inventoryBlockedTime = 0;
-        let inventoryBlockInterval = null;
-        let isGameOverAnimating = false; 
-        let inventory = JSON.parse(localStorage.getItem('dropdom_inventory')) || { hammer: 0, tractor: 0, lightning: 0, fire: 0, superfire: 0, shield: 0, dragon: 0, sledgehammer: 0 };
-
-        function getXPRequiredForNextLevel(currentLevel) {
-            return 2000 + (currentLevel - 1) * 500;
+        function giveChestReward(x, y) {
+            const rand = Math.random();
+            if (rand < 0.9) { 
+                createFloatingText(x, y, `Vazio...`, "#9ca3af");
+            } else { 
+                const items = ['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'shield', 'dragon'];
+                const itemKey = items[Math.floor(Math.random() * items.length)];
+                inventory[itemKey]++;
+                const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', shield: '🧙‍♂️', dragon: '🐉' };
+                createFloatingText(x, y, `${itemIcons[itemKey]} +1`, "#3b82f6");
+                showToast(`Baú: Item ${itemKey.toUpperCase()} ganho!`, 'success');
+            }
+            updateInventoryUI(); saveData();
         }
 
-        let wizardCharge = 0;
-        const WIZARD_MAX = 100;
-        let wizardShieldActive = false;
-        let wizardShieldTime = 0;
-        let shieldInterval = null;
-        let screenShake = 0;
+        function cancelTool() {
+            activeTool = null;
+            itemUsePanel.classList.add('hidden');
+            itemUsePanel.classList.remove('flex');
+            updateInventoryUI();
+            if (isStuckMode) toggleStuckUI(true);
+        }
+        
+        cancelItemBtn.addEventListener('click', cancelTool);
 
-        let gameActive = false;
-        let isProcessingTurn = false;
-        let isRefilling = false; 
-        let comboMultiplier = 1;
-        let activeTool = null;
-        let selectedBlock = null;
-        let dragStartX = 0;
-        let blockStartX = 0;
-
-        function renderMenus() {
-            const shopContainer = document.getElementById('shop-items-container');
-            const invContainer = document.getElementById('inventory-items-container');
-            shopContainer.innerHTML = ''; invContainer.innerHTML = '';
-
-            Object.keys(ITEMS).forEach(key => {
-                const item = ITEMS[key];
-                const iconDisplay = key === 'shield' ? `<span class="gray-wizard">${item.icon}</span>` : item.icon;
-                shopContainer.innerHTML += `
-                    <div class="flex flex-col items-center group relative">
-                        <div class="tooltip">${item.desc}</div>
-                        <div class="text-2xl mb-1 h-8 flex items-center justify-center">${iconDisplay}</div>
-                        <button onclick="buyItem('${key}')" id="buy-${key}" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-yellow-500 font-bold py-1 px-2 rounded-md border border-yellow-500/20 w-full transition-all">
-                            $${item.price}
-                        </button>
-                    </div>`;
-                invContainer.innerHTML += `
-                    <div class="flex flex-col items-center group relative">
-                        <div class="tooltip">${item.desc}</div>
-                        <button onclick="selectTool('${key}')" id="btn-${key}" class="shop-btn w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-xl border border-slate-700 mb-1">
-                            ${iconDisplay}
-                            <span id="qty-${key}" class="absolute -top-2 -right-2 bg-blue-600 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">0</span>
-                        </button>
-                        <span class="text-[9px] text-slate-500 font-bold uppercase">${item.name}</span>
-                    </div>`;
-            });
+        // --- MENU E CONTROLES ---
+        function openMenu() {
+            mainMenuEl.classList.remove('hidden');
+            setTimeout(() => {
+                mainMenuEl.classList.remove('opacity-0');
+                menuContentEl.classList.remove('scale-95');
+                menuContentEl.classList.add('scale-100');
+            }, 10);
+            if (hasGameStarted && gameActive) menuContinueBtn.classList.remove('btn-disabled');
+            else menuContinueBtn.classList.add('btn-disabled');
         }
 
-        function resize() {
-            const h = window.innerHeight - 240; 
+        function closeMenu() {
+            mainMenuEl.classList.add('opacity-0');
+            menuContentEl.classList.remove('scale-100');
+            menuContentEl.classList.add('scale-95');
+            setTimeout(() => {
+                mainMenuEl.classList.add('hidden');
+                if (!hasGameStarted) initGame();
+            }, 300);
+        }
+
+        menuToggleBtn.addEventListener('click', openMenu);
+        menuContinueBtn.addEventListener('click', () => { if(hasGameStarted) closeMenu(); });
+        
+        menuNewGameBtn.addEventListener('click', () => {
+            score = 0; wizardCharge = 0; bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
+            inventory = { hammer: 1, fire: 1, superfire: 0, shield: 0, dragon: 0, tractor: 0, lightning: 0 };
+            localStorage.setItem('dropdom_inventory', JSON.stringify(inventory));
+            overlay.classList.add('hidden'); 
+            closeMenu();
+            initGame();
+        });
+
+        volumeSlider.addEventListener('input', (e) => masterVolume = e.target.value / 100);
+        
+        inventoryToggleBtn.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            inventoryMenuEl.classList.toggle('hidden-menu'); 
+        });
+
+        // Click nas setas de ajuda
+        arrowInventory.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if(isStuckMode) {
+                inventoryMenuEl.classList.remove('hidden-menu');
+            }
+        });
+        arrowPreview.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if(isStuckMode) executeForceUp();
+        });
+
+        // Click no tabuleiro (prévia) para subir
+        gameWrapperEl.addEventListener('click', (e) => {
+             if (isStuckMode && !activeTool) {
+                 const rect = canvas.getBoundingClientRect();
+                 const y = e.clientY - rect.top;
+                 if (y > ROWS * CELL_SIZE) {
+                     executeForceUp();
+                 }
+             }
+        });
+
+        window.addEventListener('click', (e) => {
+            if (!inventoryMenuEl.contains(e.target) && !inventoryToggleBtn.contains(e.target) && e.target !== arrowInventory) {
+                inventoryMenuEl.classList.add('hidden-menu');
+            }
+            if (e.target === mainMenuEl) closeMenu();
+        });
+
+        function resizeCanvas() {
+            const h = window.innerHeight - 180; 
             const w = window.innerWidth - 40;
-            CELL_SIZE = Math.min(Math.floor(h / (ROWS + 1.5)), Math.floor(w / COLS), 50);
-            canvas.width = CELL_SIZE * COLS;
-            canvas.height = CELL_SIZE * (ROWS + 1.5);
+            CELL_SIZE = Math.min(Math.floor(h / (ROWS + 1.2)), Math.floor(w / COLS), 70); 
+            canvas.width = CELL_SIZE * COLS; 
+            canvas.height = ROWS * CELL_SIZE + CELL_SIZE + 5; 
         }
+        window.addEventListener('resize', resizeCanvas);
 
         class Block {
             constructor(c, r, w, isPreview = false) {
-                this.c = c; this.r = r; this.w = w; this.targetR = r;
-                this.x = c * CELL_SIZE; this.y = r * CELL_SIZE;
-                this.color = COLORS[w] || '#fff';
-                this.isPreview = isPreview;
-                this.isFrozen = false;
-                this.isChest = false; 
-                this.isDying = false; 
-                this.iceHp = 0;
-                this.shakeOffset = 0;
+                this.c = c; this.r = r; this.w = w; this.targetR = r; 
+                this.x = c * CELL_SIZE; this.y = r * CELL_SIZE; 
+                this.color = COLORS[w] || '#fff'; this.isPreview = isPreview;
+                this.isFrozen = false; this.iceHp = 0; this.hasChest = false;
+                this.isGray = false;
             }
-            draw() {
-                const targetY = this.targetR * CELL_SIZE;
-                this.y += (targetY - this.y) * 0.25;
-                if (selectedBlock !== this) {
-                    const targetX = this.c * CELL_SIZE;
-                    this.x += (targetX - this.x) * 0.35;
+            draw(offsetY = 0) {
+                const targetY = this.targetR * CELL_SIZE + offsetY;
+                const dy = targetY - this.y;
+                if (Math.abs(dy) < 0.2) this.y = targetY; else this.y += dy * 0.15; 
+                if (selectedBlock !== this && activeTool === null) {
+                    const dx = this.c * CELL_SIZE - this.x;
+                    if (Math.abs(dx) < 0.2) this.x = this.c * CELL_SIZE; else this.x += dx * 0.3; 
                 }
-                const gap = 3; const corner = 8;
-                const drawX = this.x + gap + this.shakeOffset;
-                const drawY = this.y + gap;
-                const drawW = (this.w * CELL_SIZE) - gap * 2; const drawH = CELL_SIZE - gap * 2;
-                
-                ctx.save();
-                if (this.isDying) {
-                    ctx.fillStyle = '#1e293b'; 
-                    ctx.shadowColor = '#000';
-                    ctx.shadowBlur = 5;
-                } else if (this.isChest) {
-                    const pulse = (Math.sin(Date.now() / 200) + 1) / 2;
-                    ctx.shadowColor = '#fbbf24'; 
-                    ctx.shadowBlur = 5 + (pulse * 10);
-                    ctx.strokeStyle = '#fbbf24';
-                    ctx.lineWidth = 2;
+                const gap = 3, r = 8;
+                ctx.fillStyle = this.isGray ? '#475569' : this.color;
+                ctx.shadowColor = this.isGray ? 'transparent' : this.color;
+                ctx.shadowBlur = this.isGray ? 0 : 8;
+                this.roundRect(this.x + gap, this.y + gap, (this.w * CELL_SIZE) - gap*2, CELL_SIZE - gap*2, r);
+                ctx.fill();
+                if (!this.isGray) { ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.fillRect(this.x + gap + 4, this.y + gap + 4, (this.w * CELL_SIZE) - gap*2 - 8, (CELL_SIZE - gap*2)/2 - 2); }
+                if (this.hasChest && !this.isGray && !this.isPreview) {
+                    ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🎁', this.x + (this.w * CELL_SIZE) / 2, this.y + CELL_SIZE / 2);
                 }
-
-                if (this.isFrozen && !this.isDying) {
-                    ctx.shadowColor = this.isChest ? '#fbbf24' : '#22d3ee';
-                    ctx.shadowBlur = 10;
-                    ctx.fillStyle = '#0891b2';
-                } else if (!this.isDying) {
-                    ctx.fillStyle = this.color;
+                // CORREÇÃO: Não mostrar gelo na prévia
+                if (this.isFrozen && !this.isGray && !this.isPreview) {
+                    ctx.shadowBlur = 15; ctx.shadowColor = "#22d3ee"; ctx.fillStyle = 'rgba(165, 243, 252, 0.4)';
+                    this.roundRect(this.x + gap, this.y + gap, (this.w * CELL_SIZE) - gap*2, CELL_SIZE - gap*2, r); ctx.fill();
+                    ctx.shadowBlur = 0; ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(`🧊${this.iceHp}`, this.x + (this.w * CELL_SIZE) / 2, this.y + CELL_SIZE / 2);
                 }
-
-                ctx.beginPath(); ctx.roundRect(drawX, drawY, drawW, drawH, corner); ctx.fill();
-                if (this.isChest && !this.isDying) ctx.stroke();
-
-                ctx.fillStyle = 'rgba(255,255,255,0.15)';
-                ctx.fillRect(drawX + 4, drawY + 4, drawW - 8, drawH / 2 - 4);
-                
-                if (this.isChest && !this.isDying) {
-                    ctx.fillStyle = 'white'; ctx.font = 'bold 18px Rajdhani';
-                    ctx.textAlign = 'center'; ctx.fillText('📦', drawX + drawW/2, drawY + drawH/2 + 6);
-                }
-
-                if (this.isFrozen && !this.isDying) {
-                    ctx.fillStyle = 'rgba(34, 211, 238, 0.4)';
-                    ctx.beginPath(); ctx.roundRect(drawX, drawY, drawW, drawH, corner); ctx.fill();
-                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
-                    ctx.fillStyle = 'white'; ctx.font = 'bold 12px Rajdhani';
-                    ctx.textAlign = 'center'; ctx.fillText('❄️ ' + this.iceHp, drawX + drawW/2, drawY + drawH/2 + 5);
-                }
-                ctx.restore();
             }
-            shake() {
-                this.shakeOffset = (Math.random() - 0.5) * 8;
-                setTimeout(() => { this.shakeOffset = 0; }, 100);
-            }
-        }
-
-        function spawnFloatingText(text, x, y, color = '#fff') {
-            floatingTexts.push({ text: text, x: x, y: y, life: 1.0, color: color, vy: -0.8 });
+            roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x+r, y); ctx.arcTo(x+w, y, x+w, y+h, r); ctx.arcTo(x+w, y+h, x, y+h, r); ctx.arcTo(x, y+h, x, y, r); ctx.arcTo(x, y, x+w, y, r); ctx.closePath(); }
         }
 
         function initGame() {
-            if(shieldInterval) clearInterval(shieldInterval);
-            if(inventoryBlockInterval) clearInterval(inventoryBlockInterval);
-
-            score = 0; level = 1; scoreAtLastLevel = 0; wizardCharge = 0; comboMultiplier = 1;
-            blocks = []; particles = []; floatingTexts = []; inventoryBlockedTime = 0;
-            wizardShieldActive = false; wizardShieldTime = 0; isRefilling = false; isProcessingTurn = false;
-            activeTool = null; selectedBlock = null; isGameOverAnimating = false;
-
-            updateInventoryLockUI();
-            wizardTimerEl.classList.add('hidden');
-            wizardContainer.classList.remove('shield-active', 'wizard-pulse');
-            wizardIcon.classList.remove('gray-wizard');
-            wizardIcon.textContent = '🧙‍♂️';
-            wizardBarEl.style.width = '0%';
-            xpBarEl.style.width = '0%';
-
-            renderMenus(); updateUI();
-            for(let i=0; i<4; i++) {
-                const row = generateRowData(ROWS - 1 - i);
-                row.forEach(d => blocks.push(new Block(d.c, d.r, d.w)));
-            }
-            generateNextPreview();
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            blocks = []; particles = []; score = 0; comboMultiplier = 0; wizardCharge = 0;
+            isGameOverSequence = false; wizardShieldActive = false; turnCounter = 0;
+            isProcessingTurn = false; isRefilling = false; activeTool = null; selectedBlock = null;
+            hasGameStarted = true; isStuckMode = false;
             
-            gameActive = true; overlay.classList.add('hidden'); overlay.style.opacity = '0';
-            requestAnimationFrame(loop);
-            checkGravity();
-        }
-
-        function generateRowData(rowIndex) {
-            let row = []; let c = 0;
-            let gapSize = Math.floor(Math.random() * 3) + 1;
-            let gapPos = Math.floor(Math.random() * (COLS - gapSize + 1));
-            while (c < COLS) {
-                if (c >= gapPos && c < gapPos + gapSize) { c = gapPos + gapSize; continue; }
-                let maxW = Math.min(3, COLS - c); 
-                if (c < gapPos) maxW = Math.min(maxW, gapPos - c);
-                let w = Math.floor(Math.random() * maxW) + 1;
-                row.push({c: c, r: rowIndex, w: w});
-                c += w;
-            }
-            return row;
+            if(shieldInterval) clearInterval(shieldInterval);
+            bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
+            inventory = JSON.parse(localStorage.getItem('dropdom_inventory')) || { hammer: 0, fire: 0, superfire: 0, shield: 0, dragon: 0, tractor: 0, lightning: 0 };
+            
+            updateUI(); updateWizardUI(); updateInventoryUI();
+            generateNextPreview();
+            gameActive = true; 
+            overlay.classList.add('hidden'); overlay.style.opacity = '0';
+            comboDisplayEl.style.opacity = '0';
+            toggleStuckUI(false);
+            cancelTool();
+            
+            loop();
+            isRefilling = true;
+            pushMultipleRows(6, () => { isRefilling = false; checkStuckState(); });
         }
 
         function generateNextPreview() {
             nextRowBlocks = [];
-            const rowData = generateRowData(0);
-            rowData.forEach(d => nextRowBlocks.push(new Block(d.c, d.r, d.w, true)));
-
-            if (Math.random() < 0.1) {
-                const chestIdx = Math.floor(Math.random() * nextRowBlocks.length);
-                nextRowBlocks[chestIdx].isChest = true;
+            let c = 0;
+            const mandatoryGapPos = Math.floor(Math.random() * (COLS - 1));
+            const mandatoryGapSize = Math.floor(Math.random() * 2) + 1;
+            while (c < COLS) {
+                if (c >= mandatoryGapPos && c < mandatoryGapSize + mandatoryGapPos) { c = mandatoryGapPos + mandatoryGapSize; continue; }
+                let maxW = (c < mandatoryGapPos) ? Math.min(3, mandatoryGapPos - c) : Math.min(3, COLS - c);
+                if (maxW <= 0) { c++; continue; }
+                let w = Math.floor(Math.random() * maxW) + 1;
+                const b = new Block(c, ROWS, w, true);
+                b.y = canvas.height + CELL_SIZE * 2; 
+                nextRowBlocks.push(b);
+                c += w;
             }
-
-            let hasIce = false;
-            if (Math.random() < 0.2) {
-                const iceIdx = Math.floor(Math.random() * nextRowBlocks.length);
-                nextRowBlocks[iceIdx].isFrozen = true;
-                nextRowBlocks[iceIdx].iceHp = 2;
-                hasIce = true;
+            if (turnCounter > 0 && Math.random() < 0.10 && nextRowBlocks.length > 0) {
+                const b = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
+                b.hasChest = true;
             }
-
-            if (level >= 16 && hasIce) {
-                const otherBlocks = nextRowBlocks.filter(b => !b.isFrozen);
-                if (otherBlocks.length > 0) {
-                    const secondIce = otherBlocks[Math.floor(Math.random() * otherBlocks.length)];
-                    secondIce.isFrozen = true;
-                    secondIce.iceHp = 2;
-                }
+            if (score > 1000 && Math.random() < Math.min(0.3, score/10000)) {
+                const b = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
+                b.isFrozen = true; b.iceHp = 2;
             }
-        }
-
-        function openChest(x, y) {
-            const rand = Math.random();
-            if (rand < 0.05) { 
-                const keys = Object.keys(ITEMS);
-                const itemKey = keys[Math.floor(Math.random() * keys.length)];
-                inventory[itemKey]++;
-                spawnFloatingText(`BAÚ: ${ITEMS[itemKey].icon}`, x, y - 20, '#fbbf24');
-                showToast(`🎁 Baú: Recebeu ${ITEMS[itemKey].name}!`);
-            } else if (rand < 0.50) { 
-                credits += 20;
-                spawnFloatingText("+20 💰", x, y - 20, '#facc15');
-                showToast("🎁 Baú: +20 Créditos!");
-            } else if (rand < 0.65) { 
-                wizardCharge = Math.max(0, wizardCharge - 20);
-                wizardBarEl.style.width = wizardCharge + '%';
-                spawnFloatingText("-20% MANA ✨", x, y - 20, '#a855f7');
-                showToast("🎁 Baú: Mana do Mago reduzida!");
-            } else { 
-                spawnFloatingText("VAZIO... 💨", x, y - 20, '#94a3b8');
-            }
-            updateUI(); saveData();
         }
 
         function pushNextRow(callback) {
+            turnCounter++; 
             blocks.forEach(b => b.targetR--);
-            if (blocks.some(b => b.targetR < 0)) return gameOver();
             nextRowBlocks.forEach(b => {
-                b.r = ROWS; b.targetR = ROWS - 1; b.y = ROWS * CELL_SIZE; b.isPreview = false;
-                blocks.push(b);
+                b.r = ROWS; b.targetR = ROWS - 1; b.y = (ROWS + 1) * CELL_SIZE; 
+                b.isPreview = false; blocks.push(b);
             });
-            generateNextPreview();
-            setTimeout(() => checkGravity(callback), 200);
+            generateNextPreview(); 
+            setTimeout(() => checkGravity(callback), 80); 
+        }
+
+        function executeForceUp() {
+            if (isProcessingTurn || isRefilling) return;
+            toggleStuckUI(false);
+            isProcessingTurn = true;
+            turnLinesCleared = 0; 
+            waitingForForceUp = true;
+            pushNextRow(() => { 
+                updateWizardCharge(WIZARD_STEP); // Force up sempre dá mana
+                isProcessingTurn = false; 
+                waitingForForceUp = false;
+                checkAutoRefill();
+            });
+        }
+
+        function checkGravity(callback, isFinalCheck = false) {
+            let moved = false;
+            blocks.sort((a, b) => a.targetR - b.targetR).forEach(b => {
+                if (b.targetR < ROWS - 1 && !blocks.some(o => o.targetR === b.targetR + 1 && !(o.c >= b.c + b.w || o.c + o.w <= b.c))) {
+                    b.targetR++; moved = true;
+                }
+            });
+
+            if (moved) {
+                setTimeout(() => checkGravity(callback, isFinalCheck), 100); 
+            } else {
+                let corrected = false;
+                for (let r = 0; r < ROWS; r++) {
+                    let occupied = new Array(COLS).fill(null);
+                    const rBlocks = blocks.filter(b => b.targetR === r);
+                    rBlocks.forEach(b => {
+                        let hasOverlap = false;
+                        for (let i = 0; i < b.w; i++) {
+                            const pos = b.c + i;
+                            if (pos >= COLS || occupied[pos] !== null) { hasOverlap = true; break; }
+                        }
+                        if (hasOverlap) {
+                            if (b.targetR < ROWS - 1) { b.targetR++; corrected = true; }
+                            else { blocks = blocks.filter(item => item !== b); corrected = true; }
+                        } else {
+                            for (let i = 0; i < b.w; i++) occupied[b.c + i] = b;
+                        }
+                    });
+                }
+                if (corrected) { setTimeout(() => checkGravity(callback, isFinalCheck), 50); return; }
+                checkLines(callback, isFinalCheck);
+            }
+        }
+
+        function checkLines(callback, isFinalCheck = false) {
+            let linesToClear = [];
+            for (let r = 0; r < ROWS; r++) {
+                let map = new Array(COLS).fill(0);
+                blocks.filter(b => b.targetR === r).forEach(b => { for(let i=0; i<b.w; i++) map[b.c+i] = 1; });
+                if (map.every(v => v === 1)) linesToClear.push(r);
+            }
+            
+            if (linesToClear.length > 0) {
+                const linesCount = linesToClear.length;
+                turnLinesCleared += linesCount; 
+                
+                let roundPoints = 0, roundCoins = 0;
+                playExplosionSound();
+                linesToClear.forEach(r => {
+                    const rowBlocks = blocks.filter(b => b.targetR === r);
+                    rowBlocks.forEach(b => {
+                        if(b.isFrozen) { 
+                            b.iceHp--; 
+                            if(b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; }
+                        } else {
+                            if (b.hasChest) giveChestReward(b.x + (b.w * CELL_SIZE / 2), b.y);
+                            createExplosion(b.x+b.w*CELL_SIZE/2, b.y+CELL_SIZE/2, b.color);
+                        }
+                    });
+                    roundPoints += 100;
+                });
+
+                blocks = blocks.filter(b => {
+                    const isInClearLine = linesToClear.includes(b.targetR);
+                    if (!isInClearLine) return true;
+                    return b.isFrozen; 
+                });
+
+                const multiplier = Math.max(1, turnLinesCleared);
+                const totalPoints = roundPoints * multiplier;
+                score += totalPoints; 
+                if(score > bestScore) bestScore = score;
+                createFloatingText(canvas.width/2 + 40, (linesToClear[0] * CELL_SIZE), `★ ${totalPoints}`, "#3b82f6");
+
+                saveData();
+                updateUI(true); 
+                setTimeout(() => checkGravity(callback, isFinalCheck), 250); 
+            } else {
+                if (blocks.some(b => b.targetR <= 0)) { gameOver(); return; }
+                
+                if (callback) {
+                    callback();
+                } else {
+                    isProcessingTurn = false;
+                    setTimeout(() => { if(!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
+                    checkAutoRefill();
+                }
+                
+                // CORREÇÃO: Mana sobe APENAS se o turno inteiro (movimento + subida) não teve destruição
+                if (isFinalCheck && !isRefilling && !waitingForForceUp) {
+                    if (turnLinesCleared === 0) {
+                        updateWizardCharge(WIZARD_STEP);
+                    }
+                }
+            }
         }
 
         function checkAutoRefill() {
-            if (!gameActive || isRefilling || isGameOverAnimating) return;
-            const occupiedRowsCount = new Set(blocks.map(b => b.targetR)).size;
-            if (occupiedRowsCount < 4) {
-                isRefilling = true; isProcessingTurn = true;
-                const refillStep = () => {
-                    const currentRows = new Set(blocks.map(b => b.targetR)).size;
-                    if (currentRows < 5) {
-                        pushNextRow(() => { setTimeout(refillStep, 100); });
-                    } else {
+            if (isRefilling || isProcessingTurn) return;
+            const activeRowIndices = new Set(blocks.map(b => b.targetR));
+            const maxRowIndex = blocks.length > 0 ? Math.min(...activeRowIndices) : ROWS;
+            
+            gameWrapperEl.classList.remove('alert-yellow', 'alert-red');
+            if (maxRowIndex <= 2 && maxRowIndex >= 0) gameWrapperEl.classList.add('alert-red');
+            else if (maxRowIndex <= 4 && maxRowIndex >= 3) gameWrapperEl.classList.add('alert-yellow');
+
+            if (maxRowIndex > 6 || blocks.length === 0) {
+                const rowsToAdd = maxRowIndex - 6;
+                if (rowsToAdd > 0) { 
+                    isRefilling = true; isProcessingTurn = true;
+                    pushMultipleRows(rowsToAdd, () => { 
                         isRefilling = false; isProcessingTurn = false;
-                    }
-                };
-                refillStep();
-            }
-        }
-
-        function checkGravity(callback) {
-            blocks.sort((a,b) => b.targetR - a.targetR);
-            let moved = false;
-            blocks.forEach(b => {
-                let canFall = b.targetR < ROWS - 1;
-                if (canFall) {
-                    const below = blocks.find(o => o.targetR === b.targetR+1 && !(o.c >= b.c+b.w || o.c+o.w <= b.c));
-                    if (below) canFall = false;
+                        setTimeout(() => { comboDisplayEl.style.opacity = "0"; }, 1500);
+                        checkStuckState();
+                    }); 
                 }
-                if (canFall) { b.targetR++; moved = true; }
-            });
-            if (moved) setTimeout(() => checkGravity(callback), 150);
-            else checkLines(callback);
+            } else {
+                checkStuckState();
+            }
         }
 
-        function checkLines(callback) {
-            let rowsToProcess = [];
-            for (let r = 0; r < ROWS; r++) {
-                let map = new Array(COLS).fill(0);
-                let rowBlocks = blocks.filter(b => b.targetR === r);
-                rowBlocks.forEach(b => { for(let i=0; i<b.w; i++) map[b.c+i] = 1; });
-                if (map.every(v => v === 1)) rowsToProcess.push(r);
-            }
-
-            if (rowsToProcess.length > 0) {
-                // Toca som de explosão ao detectar combinação
-                playExplodeSound();
-
-                let totalPointsInThisPass = 0;
-                let totalCoinsInThisPass = 0;
-                let somethingDestroyed = false;
-                rowsToProcess.forEach(r => {
-                    const rowBlocks = blocks.filter(b => b.targetR === r);
-                    const normalBlocks = rowBlocks.filter(b => !b.isFrozen);
-                    const frozenBlocks = rowBlocks.filter(b => b.isFrozen);
-                    if (normalBlocks.length > 0) {
-                        somethingDestroyed = true;
-                        normalBlocks.forEach(b => {
-                            createExplosion(b.x + (b.w*CELL_SIZE)/2, b.y + CELL_SIZE/2, b.color);
-                            if (b.isChest) openChest(b.x + (b.w*CELL_SIZE)/2, b.y + CELL_SIZE/2);
-                            totalPointsInThisPass += 20;
-                        });
-                        blocks = blocks.filter(b => !normalBlocks.includes(b));
-                    }
-                    if (frozenBlocks.length > 0) {
-                        frozenBlocks.forEach(b => {
-                            b.iceHp--;
-                            createExplosion(b.x + (b.w*CELL_SIZE)/2, b.y + CELL_SIZE/2, '#22d3ee');
-                            spawnFloatingText("-1 ❄️", b.x + (b.w*CELL_SIZE)/2, b.y, '#22d3ee');
-                            if (b.iceHp <= 0) {
-                                b.isFrozen = false;
-                                spawnFloatingText("LIBERADO!", b.x + (b.w*CELL_SIZE)/2, b.y + 20, '#fff');
-                            }
-                        });
-                    }
-                    totalPointsInThisPass += 100;
-                    totalCoinsInThisPass += 5;
-                });
-                if (somethingDestroyed) screenShake = rowsToProcess.length * 6;
-                const finalPoints = totalPointsInThisPass * comboMultiplier;
-                const finalCredits = totalCoinsInThisPass * comboMultiplier;
-                score += finalPoints;
-                credits += finalCredits;
-                const requiredXP = getXPRequiredForNextLevel(level);
-                if (score - scoreAtLastLevel >= requiredXP && level < 20) {
-                    scoreAtLastLevel += requiredXP;
-                    level++; credits += 20; 
-                    showToast(`🚀 NÍVEL ${level} (+20 💰)!`);
-                    spawnFloatingText("LEVEL UP!", canvas.width/2, canvas.height/2, '#10b981');
-                    if (level >= 11 && level <= 15) startInventoryBlock(30);
-                    xpBarEl.classList.add('bg-white'); setTimeout(() => xpBarEl.classList.remove('bg-white'), 200);
+        function checkStuckState() {
+            if (isProcessingTurn || isRefilling || isGameOverSequence) return;
+            let canMove = false;
+            for (let b of blocks) {
+                if (!b.isFrozen) {
+                    const canLeft = b.c > 0 && !blocks.some(o => o.targetR === b.targetR && o.c + o.w === b.c);
+                    const canRight = b.c + b.w < COLS && !blocks.some(o => o.targetR === b.targetR && o.c === b.c + b.w);
+                    if (canLeft || canRight) { canMove = true; break; }
                 }
-                spawnFloatingText(`+${finalPoints} ✨`, canvas.width/2, rowsToProcess[0] * CELL_SIZE, '#60a5fa');
-                spawnFloatingText(`+${finalCredits} 💰`, canvas.width/2, rowsToProcess[0] * CELL_SIZE + 25, '#facc15');
-                comboMultiplier++; showCombo(); updateWizardCharge(-15); updateUI(true); saveData();
-                setTimeout(() => checkGravity(callback), 250);
+            }
+            toggleStuckUI(!canMove);
+        }
+
+        function toggleStuckUI(show) {
+            isStuckMode = show;
+            if (show) {
+                choiceMessage.classList.remove('hidden');
+                arrowInventory.classList.remove('hidden');
+                arrowPreview.classList.remove('hidden');
             } else {
-                if (blocks.some(b => b.targetR === 0)) { return gameOver(); }
-                if (callback) callback();
-                checkAutoRefill();
+                choiceMessage.classList.add('hidden');
+                arrowInventory.classList.add('hidden');
+                arrowPreview.classList.add('hidden');
             }
         }
 
-        function startInventoryBlock(seconds) {
-            inventoryBlockedTime = seconds; updateInventoryLockUI();
-            if (inventoryBlockInterval) clearInterval(inventoryBlockInterval);
-            showToast("⚠️ O MAGO BLOQUEOU SEU INVENTÁRIO!");
-            inventoryMenu.classList.add('hidden-menu');
-            inventoryBlockInterval = setInterval(() => {
-                if (!gameActive) { clearInterval(inventoryBlockInterval); return; }
-                inventoryBlockedTime--; updateInventoryLockUI();
-                if (inventoryBlockedTime <= 0) { clearInterval(inventoryBlockInterval); showToast("🔓 INVENTÁRIO LIBERADO!"); }
-            }, 1000);
-        }
-
-        function updateInventoryLockUI() {
-            if (inventoryBlockedTime > 0) {
-                inventoryToggleBtn.classList.add('btn-blocked'); inventoryLockTimerEl.classList.remove('hidden');
-                inventoryLockTimerEl.textContent = inventoryBlockedTime + 's'; invTooltip.textContent = "INVENTÁRIO BLOQUEADO!";
-            } else {
-                inventoryToggleBtn.classList.remove('btn-blocked'); inventoryLockTimerEl.classList.add('hidden'); invTooltip.textContent = "Seu Inventário";
-            }
+        function pushMultipleRows(count, finalCallback) {
+            if (count <= 0) { if (finalCallback) finalCallback(); return; }
+            pushNextRow(() => { setTimeout(() => { pushMultipleRows(count - 1, finalCallback); }, 150); });
         }
 
         function updateWizardCharge(amt) {
-            if (wizardShieldActive || isGameOverAnimating) return;
-            const difficultyMultiplier = 1 + (level * 0.02);
-            const finalAmt = amt > 0 ? amt * difficultyMultiplier : amt;
-            wizardCharge = Math.max(0, Math.min(WIZARD_MAX, wizardCharge + finalAmt));
-            wizardBarEl.style.width = wizardCharge + '%';
-            if (!wizardShieldActive) {
-                if (wizardCharge >= 80) { wizardIcon.textContent = '😡'; wizardContainer.classList.add('wizard-pulse'); }
-                else { wizardIcon.textContent = '🧙‍♂️'; wizardContainer.classList.remove('wizard-pulse'); }
-            }
-            if (wizardCharge >= WIZARD_MAX) triggerWizardSpell();
+            if (wizardShieldActive) return;
+            wizardCharge = Math.min(WIZARD_MAX, wizardCharge + amt);
+            if (wizardCharge >= WIZARD_MAX) { wizardCharge = 0; triggerWizardSpell(); }
+            updateWizardUI();
         }
 
         function triggerWizardSpell() {
-            const victims = blocks.filter(b => !b.isFrozen);
-            if (victims.length === 0) { wizardCharge = 0; return; }
-            
-            showToast("❄️ MAGIA DE GELO!");
-            screenShake = 15; freezeOverlay.style.opacity = '1';
-            setTimeout(() => freezeOverlay.style.opacity = '0', 1000);
-            
-            let freezeCount = Math.min(level >= 6 ? 2 : 1, victims.length);
-            const baseIceHP = level >= 16 ? 4 : (level >= 6 ? 3 : 2);
-            for(let i=0; i<freezeCount; i++) {
-                const b = victims.splice(Math.floor(Math.random()*victims.length), 1)[0];
-                b.isFrozen = true; b.iceHp = baseIceHP;
+            const eligible = blocks.filter(b => !b.isFrozen && b.targetR < ROWS && b !== selectedBlock);
+            if(eligible.length > 0) {
+                const b = eligible[Math.floor(Math.random() * eligible.length)];
+                b.isFrozen = true; b.iceHp = 2;
+                showToast("O Feiticeiro lançou um feitiço!");
             }
-            wizardCharge = 0; updateWizardCharge(0);
+            gameWrapperEl.classList.add('alert-freeze');
+            setTimeout(() => gameWrapperEl.classList.remove('alert-freeze'), 1000);
+            checkStuckState();
         }
 
-        function selectTool(tool) {
-            if (inventoryBlockedTime > 0 || isGameOverAnimating) return;
-            if (inventory[tool] <= 0) return showToast("Sem estoque!");
-            if (activeTool === tool) activeTool = null; else activeTool = tool;
-            document.querySelectorAll('.shop-btn').forEach(b => b.classList.remove('active-tool'));
-            if (activeTool) { 
-                document.getElementById('btn-'+tool).classList.add('active-tool'); 
-                inventoryMenu.classList.add('hidden-menu'); 
+        function updateWizardUI() {
+            wizardBarEl.style.width = `${(wizardCharge / WIZARD_MAX) * 100}%`;
+            wizardContainerEl.classList.toggle('shield-active', wizardShieldActive);
+            wizardTimerEl.classList.toggle('hidden', !wizardShieldActive);
+        }
+
+        function buyItem(item) {
+            // Deprecated
+        }
+
+        function useShield() {
+            if (inventory.shield > 0 && !wizardShieldActive) {
+                inventory.shield--;
+                wizardShieldActive = true; wizardShieldTime = 30;
+                updateInventoryUI(); updateWizardUI();
+                if(shieldInterval) clearInterval(shieldInterval);
+                shieldInterval = setInterval(() => {
+                    wizardShieldTime--;
+                    wizardTimerEl.textContent = `${wizardShieldTime}s`;
+                    if (wizardShieldTime <= 0) {
+                        wizardShieldActive = false; clearInterval(shieldInterval); updateWizardUI();
+                    }
+                }, 1000);
+                saveData(); showToast("Escudo Ativado!");
+                if(isStuckMode) toggleStuckUI(false);
             }
-            if (activeTool === 'shield') useAnulacao();
-            if (activeTool === 'dragon') useDragon();
-        }
-
-        function buyItem(key) {
-            if (isGameOverAnimating) return;
-            if (credits >= ITEMS[key].price) { 
-                credits -= ITEMS[key].price; 
-                inventory[key]++; 
-                updateUI(); saveData(); 
-                showToast("Comprado: " + ITEMS[key].name); 
-            } else showToast("Créditos insuficientes!");
-        }
-
-        function useAnulacao() {
-            inventory.shield--; wizardShieldActive = true; wizardShieldTime = 30;
-            wizardTimerEl.classList.remove('hidden'); wizardContainer.classList.add('shield-active');
-            wizardIcon.classList.add('gray-wizard');
-            activeTool = null; updateUI();
-            if (shieldInterval) clearInterval(shieldInterval);
-            shieldInterval = setInterval(() => {
-                if (!gameActive) { clearInterval(shieldInterval); return; }
-                wizardShieldTime--; wizardTimerEl.textContent = wizardShieldTime + 's';
-                if (wizardShieldTime <= 0) {
-                    clearInterval(shieldInterval); wizardShieldActive = false;
-                    wizardTimerEl.classList.add('hidden'); wizardContainer.classList.remove('shield-active');
-                    wizardIcon.classList.remove('gray-wizard');
-                    wizardIcon.textContent = wizardCharge >= 80 ? '😡' : '🧙‍♂️';
-                }
-            }, 1000);
-            showToast("🔮 ANULAÇÃO DE MANA ATIVADA!");
         }
 
         function useDragon() {
-            inventory.dragon--; showToast("🐉 O DRAGÃO DERRETEU O GELO!"); screenShake = 20;
-            blocks.forEach(b => { if(b.isFrozen) b.isFrozen = false; });
-            spawnFloatingText("GLOBAL MELT! 🔥", canvas.width/2, canvas.height/2, '#f97316');
-            activeTool = null; updateUI(); checkGravity();
+            if (inventory.dragon > 0) {
+                inventory.dragon--;
+                blocks.forEach(b => { b.isFrozen = false; b.iceHp = 0; });
+                updateInventoryUI(); updateUI(); saveData();
+                showToast("Dragão: Gelo derretido!");
+                checkStuckState();
+            }
         }
 
-        function closeAllMenus() {
-            shopMenu.classList.add('hidden-menu'); 
-            inventoryMenu.classList.add('hidden-menu');
+        function gameOver() {
+            if (isGameOverSequence) return;
+            gameActive = false; isGameOverSequence = true;
+            toggleStuckUI(false);
+            overlay.classList.remove('hidden'); overlay.style.opacity = '1';
+            finalScoreEl.textContent = score; finalBestEl.textContent = bestScore;
         }
+
+        function updateUI(anim = false) { 
+            scoreEl.textContent = score; bestEl.textContent = bestScore; 
+            if (turnLinesCleared >= 2) {
+                if (comboHideTimer) clearTimeout(comboHideTimer);
+                comboDisplayEl.style.top = `${(canvas.height / 2) - 80}px`;
+                comboDisplayEl.style.left = `50%`;
+                comboDisplayEl.style.transform = `translate(-50%, -50%)`;
+                comboDisplayEl.innerHTML = `COMBO<br>x${turnLinesCleared}`;
+                comboDisplayEl.style.opacity = "1";
+                comboDisplayEl.classList.remove('combo-pulse');
+                void comboDisplayEl.offsetWidth; 
+                comboDisplayEl.classList.add('combo-pulse');
+            }
+        }
+
+        function selectTool(tool) {
+            if (inventory[tool] > 0) {
+                activeTool = tool;
+                inventoryMenuEl.classList.add('hidden-menu'); 
+                itemUsePanel.classList.remove('hidden'); itemUsePanel.classList.add('flex');
+                
+                const names = {hammer:'Martelo', tractor:'Trator', lightning:'Raio', fire:'Fogo', superfire:'Super Fogo'};
+                itemUseMsg.textContent = `Clique num bloco para usar ${names[tool]}!`;
+                updateInventoryUI();
+                
+                if (isStuckMode) {
+                     choiceMessage.classList.add('hidden');
+                     arrowInventory.classList.add('hidden');
+                     arrowPreview.classList.add('hidden');
+                }
+            }
+        }
+
+        function updateInventoryUI() { 
+            const itemMap = { 
+                hammer: {i:'🔨', d:'Diminui o tamanho do bloco escolhido em 1. (não se aplica a bloco congelado)'}, 
+                tractor: {i:'🚜', d:'Destrói os blocos da coluna inteira. (os blocos congelados permanecem na coluna)'}, 
+                lightning: {i:'⚡', d:'Destrói o bloco que você escolher e todos ao seu redor.'}, 
+                fire: {i:'🔥', d:'Remove 1 da resistência do gelo no bloco que você escolher'}, 
+                superfire: {i:'🔥🔥', d:'Remove 1 da resistência de todos os gelos da coluna que você escolher'}, 
+                shield: {i:'🧙‍♂️', d:'Impede o mago de usar seus poderes por 30 segundos'}, 
+                dragon: {i:'🐉', d:'Remove o gelo de todos os blocos do mapa'} 
+            };
+            inventoryContainer.innerHTML = '';
+            let total = 0;
+            Object.keys(itemMap).forEach(key => {
+                const count = inventory[key] || 0;
+                total += count;
+                const btn = document.createElement('button');
+                const isEmpty = count === 0;
+                btn.className = `shop-btn w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center text-2xl border border-slate-600 relative group ${activeTool === key ? 'active-tool' : ''} ${isEmpty ? 'opacity-40 grayscale' : ''}`;
+                btn.onclick = () => { 
+                    if (isEmpty) return; 
+                    if (key === 'shield') useShield(); 
+                    else if (key === 'dragon') useDragon(); 
+                    else selectTool(key);
+                };
+                btn.innerHTML = `${itemMap[key].i}<span class="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">${count}</span><div class="item-tooltip">${itemMap[key].d}</div>`;
+                inventoryContainer.appendChild(btn);
+            });
+            totalInventoryCountEl.textContent = total;
+            totalInventoryCountEl.classList.toggle('hidden', total === 0);
+        }
+
+        function saveData() { 
+            localStorage.setItem('dropdom_best', bestScore); 
+            localStorage.setItem('dropdom_inventory', JSON.stringify(inventory));
+        }
+
+        canvas.addEventListener('mousedown', handleStart); canvas.addEventListener('touchstart', e => { e.preventDefault(); handleStart(e.touches[0]); });
+        window.addEventListener('mousemove', handleMove); window.addEventListener('touchmove', e => { e.preventDefault(); handleMove(e.touches[0]); });
+        window.addEventListener('mouseup', handleEnd); window.addEventListener('touchend', handleEnd);
 
         function handleStart(e) {
-            if (!gameActive || isProcessingTurn || isGameOverAnimating) return;
-            closeAllMenus();
-            const pos = getPos(e);
-            const b = blocks.find(b => pos.y >= b.y && pos.y < b.y + CELL_SIZE && pos.x >= b.x && pos.x < b.x + (b.w * CELL_SIZE));
+            if (!gameActive || isProcessingTurn || isRefilling) return;
+            const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left, y = e.clientY - rect.top;
+            if (activeTool) { handleTool(x, y); return; }
             
-            if(!hasInteracted && audioAvailable && bgm) startAudio();
-
-            if (activeTool && b) { applyTool(b); return; }
+            // CORREÇÃO: Não permite arrastar se estiver congelado
+            const c = Math.floor(x / CELL_SIZE), r = Math.floor(y / CELL_SIZE);
+            const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
             if (b) {
-                if (b.isFrozen) { b.shake(); showToast("❄️ BLOCO CONGELADO!"); return; }
-                selectedBlock = b; dragStartX = pos.x; blockStartX = b.x; 
+                if (b.isFrozen) {
+                    showToast("Bloco Congelado!", "error");
+                    playErrorSound();
+                    return;
+                }
+                comboDisplayEl.style.opacity = "0"; 
+                selectedBlock = b; 
+                dragStartX = x; 
+                blockStartX = b.x; 
+                originalC = b.c; 
+                playMoveSound();
+            }
+        }
+
+        function handleTool(x, y) {
+            const c = Math.floor(x / CELL_SIZE), r = Math.floor(y / CELL_SIZE);
+            const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
+            if (!b) return;
+
+            const restrictedTools = ['hammer', 'tractor', 'lightning'];
+            if (restrictedTools.includes(activeTool) && b.isFrozen) {
+                showToast("Blocos congelados são imunes a este item!", "error");
+                playErrorSound();
+                return;
+            }
+
+            let used = false;
+            if (activeTool === 'hammer') {
+                if (b.w > 1) { b.w--; used = true; }
+            }
+            else if (activeTool === 'tractor') {
+                const mouseCol = Math.floor(x / CELL_SIZE);
+                blocks = blocks.filter(item => {
+                    const intersects = (mouseCol >= item.c && mouseCol < item.c + item.w);
+                    if(intersects && !item.isFrozen) return false;
+                    return true;
+                });
+                used = true;
+            }
+            else if (activeTool === 'lightning') {
+                const targets = blocks.filter(item => Math.abs(item.targetR - b.targetR) <= 1 && Math.abs(item.c - b.c) <= 2 && !item.isFrozen);
+                blocks = blocks.filter(item => !targets.includes(item));
+                used = true;
+            }
+            else if (activeTool === 'fire') {
+                if (!b.isFrozen) { showToast("Use em Gelo!"); return; }
+                b.iceHp--; if (b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; } used = true;
+            }
+            else if (activeTool === 'superfire') {
+                const mouseCol = Math.floor(x / CELL_SIZE);
+                let hit = false;
+                blocks.forEach(item => {
+                     const intersects = (mouseCol >= item.c && mouseCol < item.c + item.w);
+                     if(intersects && item.isFrozen) {
+                         item.iceHp--; if(item.iceHp <= 0) { item.isFrozen = false; item.iceHp = 0; }
+                         hit = true;
+                     }
+                });
+                if(hit) used = true;
+            }
+
+            if (used) {
+                inventory[activeTool]--;
+                cancelTool(); 
+                playExplosionSound();
+                createExplosion(x, y, '#fff');
+                updateInventoryUI(); saveData();
+                isProcessingTurn = true;
+                checkGravity(() => { isProcessingTurn = false; checkStuckState(); }, true);
             }
         }
 
         function handleMove(e) {
-            if (!selectedBlock || isGameOverAnimating) return;
-            const pos = getPos(e);
-            let newX = blockStartX + (pos.x - dragStartX);
-            let minX = 0; let maxX = (COLS - selectedBlock.w) * CELL_SIZE;
-            blocks.filter(o => o.targetR === selectedBlock.targetR && o !== selectedBlock).forEach(o => {
-                if (o.c < selectedBlock.c) minX = Math.max(minX, o.x + (o.w * CELL_SIZE));
-                else maxX = Math.min(maxX, o.x - (selectedBlock.w * CELL_SIZE));
+            if (!selectedBlock) return;
+            const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left;
+            const diff = x - dragStartX; let newX = blockStartX + diff;
+            const boardMaxX = (COLS - selectedBlock.w) * CELL_SIZE;
+            let limitL = 0, limitR = boardMaxX;
+            blocks.forEach(b => {
+                if (b !== selectedBlock && b.targetR === selectedBlock.targetR) {
+                    if (b.c < selectedBlock.c) limitL = Math.max(limitL, (b.c + b.w) * CELL_SIZE);
+                    else limitR = Math.min(limitR, b.c * CELL_SIZE - selectedBlock.w * CELL_SIZE);
+                }
             });
-            selectedBlock.x = Math.max(minX, Math.min(newX, maxX));
+            selectedBlock.x = Math.max(limitL, Math.min(newX, limitR));
         }
 
         function handleEnd() {
-            if (!selectedBlock || isGameOverAnimating) return;
-            const finalC = Math.round(selectedBlock.x / CELL_SIZE);
-            if (finalC !== selectedBlock.c) {
-                if(!hasInteracted) startAudio();
-
-                if (audioAvailable && !isMuted && moveSfx && moveSfx.volume > 0) {
-                    try { moveSfx.currentTime = 0; moveSfx.play().catch(() => {}); } catch(e) {}
-                }
-                selectedBlock.c = finalC; selectedBlock.x = finalC * CELL_SIZE;
-                comboMultiplier = 1; isProcessingTurn = true;
-                checkGravity(() => { pushNextRow(() => { updateWizardCharge(15); isProcessingTurn = false; checkAutoRefill(); }); });
-            } else selectedBlock.x = selectedBlock.c * CELL_SIZE;
-            selectedBlock = null;
-        }
-
-        function applyTool(b) {
-            let used = false;
-            if (activeTool === 'hammer' || activeTool === 'tractor' || activeTool === 'lightning') {
-                if (b.isFrozen) { showToast(`🚫 O gelo protege o bloco!`); b.shake(); return; }
-            }
-            if (activeTool === 'fire' && !b.isFrozen) { showToast("🔥 Use apenas em blocos de gelo!"); b.shake(); return; }
-            
-            if (activeTool === 'hammer') { if (b.w > 1) { b.w--; b.color = COLORS[b.w]; used = true; } else showToast("Tamanho mínimo atingido!"); }
-            else if (activeTool === 'fire') { b.iceHp--; if(b.iceHp<=0) b.isFrozen = false; used = true; }
-            else if (activeTool === 'tractor') { if (b.isChest && !b.isFrozen) openChest(b.x + (b.w*CELL_SIZE)/2, b.y + CELL_SIZE/2); blocks = blocks.filter(o => o !== b); used = true; }
-            else if (activeTool === 'lightning') {
-                const r = b.targetR; const c = b.c;
-                blocks = blocks.filter(o => {
-                    const inTarget = (o.targetR === r || (o.c <= c && o.c + o.w > c));
-                    if (inTarget && o.isChest && !o.isFrozen) openChest(o.x + (o.w*CELL_SIZE)/2, o.y + CELL_SIZE/2);
-                    return !(inTarget && !o.isFrozen);
-                });
-                used = true;
-            } else if (activeTool === 'superfire') {
-                const affected = blocks.filter(o => o.targetR === b.targetR && o.isFrozen);
-                if (affected.length > 0) { affected.forEach(o => { o.isFrozen = false; }); used = true; } else showToast("Sem gelo nesta linha!");
-            } else if (activeTool === 'sledgehammer') {
-                if (b.isFrozen) { if (b.isChest) { spawnFloatingText("BAÚ DESTRUÍDO! 💔", b.x + (b.w*CELL_SIZE)/2, b.y, '#ef4444'); showToast("⚠️ O impacto quebrou o baú!"); } }
-                else { if (b.isChest) openChest(b.x + (b.w*CELL_SIZE)/2, b.y + CELL_SIZE/2); }
-                blocks = blocks.filter(o => o !== b); used = true;
-            }
-            if (used) { 
-                // Toca som de explosão ao usar ferramentas destrutivas
-                playExplodeSound();
-                inventory[activeTool]--; createExplosion(b.x + (b.w*CELL_SIZE)/2, b.y + CELL_SIZE/2, '#fff'); activeTool = null; updateUI(); checkGravity(() => { checkAutoRefill(); }); saveData(); 
-            }
-        }
-
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-            return {x, y};
-        }
-
-        function updateUI(anim = false) {
-            scoreEl.textContent = score; creditsEl.textContent = credits; bestEl.textContent = bestScore; levelEl.textContent = level;
-            const req = getXPRequiredForNextLevel(level);
-            xpBarEl.style.width = `${Math.min(100, (score - scoreAtLastLevel) / req * 100)}%`;
-            let total = 0;
-            Object.keys(inventory).forEach(k => {
-                const el = document.getElementById('qty-'+k); if(el) el.textContent = inventory[k]; total += inventory[k];
-                const buyBtn = document.getElementById('buy-'+k); if(buyBtn) buyBtn.classList.toggle('btn-disabled', credits < ITEMS[k].price);
+            if (!selectedBlock) return;
+            const idealC = Math.round(selectedBlock.x / CELL_SIZE);
+            const collision = blocks.some(b => {
+                if (b === selectedBlock || b.targetR !== selectedBlock.targetR) return false;
+                return !(idealC + selectedBlock.w <= b.c || b.c + b.w <= idealC);
             });
-            totalInvCount.textContent = total; totalInvCount.classList.toggle('hidden', total === 0);
-            if(anim) scoreEl.parentElement.classList.add('pop-anim');
-            setTimeout(() => scoreEl.parentElement.classList.remove('pop-anim'), 300);
-        }
 
-        function saveData() { 
-            localStorage.setItem('dropdom_best', Math.max(bestScore, score)); 
-            localStorage.setItem('dropdom_credits', credits);
-            localStorage.setItem('dropdom_inventory', JSON.stringify(inventory));
-        }
+            if (!collision && idealC !== selectedBlock.c) {
+                selectedBlock.c = idealC; selectedBlock.x = idealC * CELL_SIZE; selectedBlock = null; 
+                isProcessingTurn = true; 
+                toggleStuckUI(false); 
+                
+                // NOVO: Reseta o contador de linhas destruídas no início do turno
+                turnLinesCleared = 0; 
 
-        function showToast(msg) { toastEl.textContent = msg; toastEl.style.opacity = '1'; setTimeout(() => { toastEl.style.opacity = '0'; }, 2500); }
-        function showCombo() { if (comboMultiplier > 1) { comboCountEl.textContent = comboMultiplier; comboEl.classList.remove('hidden'); comboEl.style.opacity = '1'; setTimeout(() => comboEl.style.opacity = '0', 1000); } }
-        function createExplosion(x, y, color) { for(let i=0; i<12; i++) { particles.push({ x, y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, life: 1.0, color }); } }
-
-        function gameOver() {
-            if (!gameActive || isGameOverAnimating) return;
-            gameActive = false;
-            isGameOverAnimating = true;
-
-            if(shieldInterval) clearInterval(shieldInterval);
-            if(inventoryBlockInterval) clearInterval(inventoryBlockInterval);
-            
-            wizardTimerEl.classList.add('hidden');
-            inventoryLockTimerEl.classList.add('hidden');
-            wizardContainer.classList.remove('shield-active', 'wizard-pulse');
-            wizardIcon.classList.remove('gray-wizard');
-            inventoryToggleBtn.classList.remove('btn-blocked');
-
-            let currentRow = ROWS - 1;
-            const cascadeTimer = setInterval(() => {
-                const rowBlocks = blocks.filter(b => b.targetR === currentRow);
-                rowBlocks.forEach(b => b.isDying = true);
-                currentRow--;
-                if (currentRow < -1) {
-                    clearInterval(cascadeTimer);
-                    setTimeout(() => {
-                        screenShake = 30;
-                        blocks.forEach(b => {
-                            for(let i=0; i<15; i++) {
-                                particles.push({ x: b.x + (b.w * CELL_SIZE)/2, y: b.y + CELL_SIZE/2, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12, life: 1.5, color: '#334155' });
+                checkGravity(() => {
+                    pushNextRow(() => {
+                        checkGravity(() => { 
+                            isProcessingTurn = false; 
+                            
+                            // Se nenhuma linha foi destruída em todo o processo, sobe mana
+                            if (turnLinesCleared === 0 && !isRefilling && !waitingForForceUp) {
+                                updateWizardCharge(8);
                             }
-                        });
-                        blocks = [];
-                        setTimeout(() => {
-                            isGameOverAnimating = false;
-                            if (score > bestScore) bestScore = score;
-                            saveData();
-                            finalScoreEl.textContent = score;
-                            finalBestEl.textContent = bestScore;
-                            overlay.classList.remove('hidden');
-                            setTimeout(() => overlay.style.opacity = '1', 50);
-                        }, 1500);
-                    }, 800);
-                }
-            }, 200);
+
+                            // Fade out do combo
+                            setTimeout(() => { if(!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
+                            checkAutoRefill();
+                        }, true); 
+                    });
+                }, false); 
+            } else {
+                selectedBlock.x = selectedBlock.c * CELL_SIZE; selectedBlock = null; 
+            }
         }
 
         function loop() {
-            if (screenShake > 0) { ctx.save(); ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake); screenShake *= 0.9; if(screenShake < 0.5) screenShake = 0; }
-            ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = 'rgba(255,255,255,0.03)'; ctx.lineWidth = 1;
-            for(let i=0; i<=COLS; i++) { ctx.beginPath(); ctx.moveTo(i*CELL_SIZE, 0); ctx.lineTo(i*CELL_SIZE, canvas.height); ctx.stroke(); }
-            for(let j=0; j<=ROWS; j++) { ctx.beginPath(); ctx.moveTo(0, j*CELL_SIZE); ctx.lineTo(canvas.width, j*CELL_SIZE); ctx.stroke(); }
-            ctx.fillStyle = '#1e293b'; const previewYStart = ROWS * CELL_SIZE + 5; ctx.fillRect(0, previewYStart, canvas.width, canvas.height - previewYStart);
-            ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, previewYStart); ctx.lineTo(canvas.width, previewYStart); ctx.stroke();
-            
-            blocks.forEach(b => b.draw());
-            
-            if (!isGameOverAnimating) {
-                nextRowBlocks.forEach(b => {
-                    const gap = 3; const corner = 8; const x = b.c * CELL_SIZE + gap; const y = ROWS * CELL_SIZE + 10 + gap; const w = (b.w * CELL_SIZE) - gap * 2; const h = CELL_SIZE - gap * 2;
-                    ctx.save(); ctx.globalAlpha = 0.4; ctx.fillStyle = b.color;
-                    ctx.beginPath(); ctx.roundRect(x, y, w, h, corner); ctx.fill();
+            if(gameActive) {
+                ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+                for(let i=1; i<COLS; i++) { ctx.beginPath(); ctx.moveTo(i*CELL_SIZE, 0); ctx.lineTo(i*CELL_SIZE, canvas.height); ctx.stroke(); }
+                for(let j=1; j<ROWS; j++) { ctx.beginPath(); ctx.moveTo(0, j*CELL_SIZE); ctx.lineTo(canvas.width, j*CELL_SIZE); ctx.stroke(); }
+                ctx.fillStyle = '#1e293b'; ctx.fillRect(0, ROWS * CELL_SIZE, canvas.width, CELL_SIZE + 5);
+                ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, ROWS * CELL_SIZE); ctx.lineTo(canvas.width, ROWS * CELL_SIZE); ctx.stroke();
+                
+                if (selectedBlock && !activeTool) {
+                    const idealC = Math.round(selectedBlock.x / CELL_SIZE);
+                    ctx.save();
+                    ctx.globalAlpha = 0.15; ctx.strokeStyle = selectedBlock.color; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
+                    ctx.strokeRect(originalC * CELL_SIZE + 4, selectedBlock.targetR * CELL_SIZE + 4, (selectedBlock.w * CELL_SIZE) - 8, CELL_SIZE - 8);
+                    let dropR = selectedBlock.targetR;
+                    while (dropR < ROWS - 1) {
+                        const nextR = dropR + 1;
+                        const hasCollision = blocks.some(b => { if (b === selectedBlock) return false; if (b.targetR !== nextR) return false; return !(idealC + selectedBlock.w <= b.c || b.c + b.w <= idealC); });
+                        if (!hasCollision) dropR = nextR; else break;
+                    }
+                    ctx.globalAlpha = 0.3; ctx.fillStyle = selectedBlock.color; ctx.setLineDash([]); 
+                    ctx.fillRect(idealC * CELL_SIZE + 4, dropR * CELL_SIZE + 4, (selectedBlock.w * CELL_SIZE) - 8, CELL_SIZE - 8);
+                    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.shadowColor = "#ffffff"; ctx.shadowBlur = 10;
+                    ctx.strokeRect(idealC * CELL_SIZE + 4, dropR * CELL_SIZE + 4, (selectedBlock.w * CELL_SIZE) - 8, CELL_SIZE - 8);
                     ctx.restore();
-                });
+                }
+                blocks.forEach(b => b.draw());
+                nextRowBlocks.forEach(b => { ctx.save(); ctx.globalAlpha = 0.4; const py = (ROWS * CELL_SIZE) + 5 - (b.targetR * CELL_SIZE); b.draw(py); ctx.restore(); });
+                for (let i = particles.length - 1; i >= 0; i--) { 
+                    let p = particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.02;    
+                    ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4); 
+                    if (p.life <= 0) particles.splice(i, 1); 
+                }
+                ctx.globalAlpha = 1;
+                animationFrameId = requestAnimationFrame(loop);
             }
-
-            for (let i = floatingTexts.length - 1; i >= 0; i--) { let ft = floatingTexts[i]; ft.y += ft.vy; ft.life -= 0.02; ctx.save(); ctx.globalAlpha = ft.life; ctx.fillStyle = ft.color; ctx.font = 'bold 18px Rajdhani'; ctx.textAlign = 'center'; ctx.strokeStyle = 'black'; ctx.lineWidth = 3; ctx.strokeText(ft.text, ft.x, ft.y); ctx.fillText(ft.text, ft.x, ft.y); ctx.restore(); if (ft.life <= 0) floatingTexts.splice(i, 1); }
-            for (let i = particles.length - 1; i >= 0; i--) { let p = particles[i]; p.x += p.vx; p.y += p.vy; p.life -= isGameOverAnimating ? 0.015 : 0.03; p.vy += 0.2; ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3); if (p.life <= 0) particles.splice(i, 1); }
-            
-            ctx.globalAlpha = 1; if (screenShake > 0) ctx.restore();
-            if (gameActive || isGameOverAnimating) requestAnimationFrame(loop);
         }
 
-        document.getElementById('shop-toggle').onclick = (e) => { e.stopPropagation(); if (isGameOverAnimating) return; inventoryMenu.classList.add('hidden-menu'); shopMenu.classList.toggle('hidden-menu'); };
-        document.getElementById('inventory-toggle').onclick = (e) => { e.stopPropagation(); if (isGameOverAnimating) return; if (inventoryBlockedTime > 0) { showToast("Inventário Bloqueado!"); return; } shopMenu.classList.add('hidden-menu'); inventoryMenu.classList.toggle('hidden-menu'); };
-        audioToggleBtn.onclick = (e) => { e.stopPropagation(); toggleAudio(); };
-
-        restartBtn.onclick = initGame;
-        canvas.onmousedown = handleStart; canvas.ontouchstart = handleStart;
-        window.onmousemove = handleMove; window.ontouchmove = handleMove;
-        window.onmouseup = handleEnd; window.ontouchend = handleEnd;
+        restartBtn.addEventListener('click', () => location.reload());
         
-        window.addEventListener('mousedown', startAudio);
-        window.addEventListener('touchstart', startAudio);
-
-        window.onload = () => { resize(); setupAudio(); initGame(); }; window.onresize = resize;
+        // Iniciar
+        openMenu();
+        resizeCanvas();
     </script>
 </body>
 </html>
