@@ -131,38 +131,38 @@
         }
 
         .alert-red {
-            animation: pulse-red 0.8s infinite ease-in-out;
-            border-color: #ef4444 !important;
-            box-shadow: inset 0 0 50px rgba(239, 68, 68, 0.3) !important;
+            animation: pulse-danger-red 1s infinite ease-in-out;
         }
 
-        .alert-freeze {
-            animation: pulse-freeze 0.6s ease-out 2;
-            border-color: #22d3ee !important;
-            box-shadow: 0 0 30px #22d3ee, inset 0 0 20px #22d3ee !important;
+        .alert-yellow {
+            animation: pulse-danger-yellow 1.5s infinite ease-in-out;
         }
 
-        @keyframes pulse-yellow {
+        @keyframes pulse-danger-red {
 
             0%,
             100% {
-                box-shadow: 0 0 5px #eab308;
+                background-color: rgba(239, 68, 68, 0.05);
+                box-shadow: inset 0 0 50px rgba(239, 68, 68, 0.2);
             }
 
             50% {
-                box-shadow: 0 0 20px #eab308;
+                background-color: rgba(239, 68, 68, 0.15);
+                box-shadow: inset 0 0 100px rgba(239, 68, 68, 0.5);
             }
         }
 
-        @keyframes pulse-red {
+        @keyframes pulse-danger-yellow {
 
             0%,
             100% {
-                box-shadow: 0 0 10px #ef4444;
+                background-color: rgba(234, 179, 8, 0.02);
+                box-shadow: inset 0 0 30px rgba(234, 179, 8, 0.1);
             }
 
             50% {
-                box-shadow: 0 0 30px #ef4444;
+                background-color: rgba(234, 179, 8, 0.08);
+                box-shadow: inset 0 0 60px rgba(234, 179, 8, 0.3);
             }
         }
 
@@ -316,9 +316,9 @@
         <button id="inventory-toggle"
             class="hud-panel p-3 rounded-xl hover:scale-105 transition-all active:scale-95 group border border-blue-500/30 relative shadow-lg shadow-blue-900/20">
             <span class="text-2xl filter drop-shadow-md text-blue-400"><i class="fas fa-briefcase"></i></span>
-            <div class="tooltip">Inventário</div>
+            <div class="tooltip">Mochila</div>
             <span id="total-inventory-count"
-                class="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full hidden font-bold border border-slate-900">0</span>
+                class="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold border border-slate-900 hidden">0</span>
         </button>
 
         <div class="hud-panel p-2 flex flex-col items-center gap-1 w-28 relative transition-all duration-300 mx-2 shadow-lg shadow-purple-900/20"
@@ -362,11 +362,17 @@
             ESCOLHA</h2>
     </div>
 
-    <div id="arrow-inventory" class="choice-arrow hidden" style="top: 80px; left: calc(50% - 90px);">
-        <i class="fas fa-arrow-up"></i>
-    </div>
     <div id="arrow-preview" class="choice-arrow hidden" style="bottom: 120px; left: 50%; transform: translateX(-50%);">
         <i class="fas fa-arrow-down"></i>
+    </div>
+
+    <!-- INVENTÁRIO (POPUP) -->
+    <div id="inventory-menu"
+        class="fixed top-24 left-1/2 z-70 flex gap-4 flex-wrap justify-center max-w-[340px] popup-menu hidden-menu bg-slate-900/95 p-5 rounded-2xl border border-blue-500/30 shadow-2xl backdrop-blur-md -translate-x-1/2">
+        <div
+            class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold px-3 py-0.5 rounded shadow tracking-widest border border-blue-400">
+            SUA MOCHILA</div>
+        <div id="inventory-items-container" class="flex gap-3 flex-wrap justify-center min-h-[50px]"></div>
     </div>
 
     <!-- PAINEL DE USO DE ITEM -->
@@ -375,15 +381,6 @@
         <p class="text-sm font-bold text-yellow-400" id="item-use-msg">Clique num bloco para usar!</p>
         <button id="cancel-item-btn"
             class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-4 py-1.5 rounded-lg border border-slate-600 transition-colors">Cancelar</button>
-    </div>
-
-    <!-- INVENTÁRIO (POPUP) -->
-    <div id="inventory-menu"
-        class="fixed top-24 left-1/2 z-70 flex gap-4 flex-wrap justify-center max-w-[340px] popup-menu hidden-menu bg-slate-900/95 p-5 rounded-2xl border border-blue-500/30 shadow-2xl backdrop-blur-md">
-        <div
-            class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold px-3 py-0.5 rounded shadow tracking-widest border border-blue-400">
-            SUA MOCHILA</div>
-        <div id="inventory-items-container" class="flex gap-3 flex-wrap justify-center min-h-[50px]"></div>
     </div>
 
     <!-- HUD LATERAIS (PONTUAÇÃO) -->
@@ -433,6 +430,10 @@
             class="absolute inset-0 bg-cyan-500/10 pointer-events-none opacity-0 transition-opacity duration-500 z-10 border-4 border-cyan-400/30 rounded-xl">
         </div>
 
+        <div id="danger-overlay"
+            class="absolute inset-0 pointer-events-none transition-opacity duration-300 z-20 rounded-xl">
+        </div>
+
         <div id="overlay"
             class="absolute inset-0 bg-black/95 flex flex-col items-center justify-center z-50 hidden opacity-0 transition-opacity duration-500 rounded-xl backdrop-blur-sm">
             <h1
@@ -467,27 +468,28 @@
         const finalScoreEl = document.getElementById('final-score');
         const finalBestEl = document.getElementById('final-best');
         const overlay = document.getElementById('overlay');
+        const dangerOverlay = document.getElementById('danger-overlay');
         const restartBtn = document.getElementById('restart-btn');
         const toastEl = document.getElementById('toast');
         const toastMsg = document.getElementById('toast-msg');
         const comboDisplayEl = document.getElementById('combo-display');
-        const inventoryContainer = document.getElementById('inventory-items-container');
-        const totalInventoryCountEl = document.getElementById('total-inventory-count');
-        const inventoryMenuEl = document.getElementById('inventory-menu');
-        const inventoryToggleBtn = document.getElementById('inventory-toggle');
         const volumeToggleBtn = document.getElementById('volume-toggle');
         const volumePopup = document.getElementById('volume-popup');
         const volumeSlider = document.getElementById('volume-slider');
         const wizardBarEl = document.getElementById('wizard-bar');
         const wizardContainerEl = document.getElementById('wizard-container');
         const wizardTimerEl = document.getElementById('wizard-timer');
+
+        // Variáveis DOM Inventário
+        const inventoryToggleBtn = document.getElementById('inventory-toggle');
+        const inventoryMenuEl = document.getElementById('inventory-menu');
+        const totalInventoryCountEl = document.getElementById('total-inventory-count');
+        const inventoryContainer = document.getElementById('inventory-items-container');
         const itemUsePanel = document.getElementById('item-use-panel');
-        const itemUseMsg = document.getElementById('item-use-msg');
         const cancelItemBtn = document.getElementById('cancel-item-btn');
 
         // Elementos de Decisão (Stuck State)
         const choiceMessage = document.getElementById('choice-message');
-        const arrowInventory = document.getElementById('arrow-inventory');
         const arrowPreview = document.getElementById('arrow-preview');
 
         // Configurações
@@ -498,13 +500,15 @@
         // Estado
         let blocks = [], nextRowBlocks = [], particles = [];
         let score = 0, bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
-        let inventory = { hammer: 0, fire: 0, superfire: 0, shield: 0, dragon: 0, tractor: 0, lightning: 0 };
         const WIZARD_MAX = 100, WIZARD_STEP = 20;
+
+        let activeTool = null;
+        let inventory = { hammer: 0, tractor: 0, lightning: 0, fire: 0, superfire: 0, dragon: 0 };
 
         let comboHideTimer = null;
         let wizardCharge = 0, wizardShieldActive = false, wizardShieldTime = 0, shieldInterval = null;
         let gameActive = false, isProcessingTurn = false, isRefilling = false, comboMultiplier = 0;
-        let activeTool = null, selectedBlock = null, dragStartX = 0, blockStartX = 0, originalC = 0;
+        let selectedBlock = null, dragStartX = 0, blockStartX = 0, originalC = 0;
         let isGameOverSequence = false;
         let turnCounter = 0;
         let animationFrameId = null;
@@ -571,52 +575,264 @@
             setTimeout(() => el.remove(), 1200);
         }
 
+        function updateInventoryUI() {
+            inventoryContainer.innerHTML = '';
+            let total = 0;
+            const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo', dragon: 'Dragão' };
+            const icons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉' };
+
+            for (let [key, count] of Object.entries(inventory)) {
+                if (key === 'shield') continue;
+                total += count;
+                const btn = document.createElement('button');
+                btn.className = `shop-btn flex flex-col items-center p-2 rounded-xl border border-slate-700 bg-slate-800 ${count > 0 ? 'hover:bg-slate-700 cursor-pointer' : 'btn-disabled'} ${activeTool === key ? 'active-tool' : ''} group w-[65px]`;
+                btn.onclick = (e) => { e.stopPropagation(); if (count > 0) selectTool(key); };
+                btn.innerHTML = `<span class="text-2xl drop-shadow-md mb-1">${icons[key]}</span>
+                                 <span class="text-[10px] font-bold bg-slate-900 border border-slate-600 px-2 py-0.5 rounded-md">${count}</span>
+                                 <div class="item-tooltip">${names[key]}</div>`;
+                inventoryContainer.appendChild(btn);
+            }
+
+            if (total > 0) {
+                totalInventoryCountEl.textContent = total;
+                totalInventoryCountEl.classList.remove('hidden');
+            } else {
+                totalInventoryCountEl.classList.add('hidden');
+            }
+        }
+
+        function selectTool(key) {
+            if (inventory[key] <= 0) return;
+            activeTool = key;
+            updateInventoryUI();
+            inventoryMenuEl.classList.add('hidden-menu');
+            itemUsePanel.classList.remove('hidden');
+
+            const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo', dragon: 'Dragão' };
+            const msg = document.getElementById('item-use-msg');
+            msg.textContent = `Aponte o ${names[key]}!`;
+            gameWrapperEl.style.cursor = 'crosshair';
+        }
+
+        function cancelTool() {
+            activeTool = null;
+            itemUsePanel.classList.add('hidden');
+            gameWrapperEl.style.cursor = 'pointer';
+            updateInventoryUI();
+        }
+
+        function handleTool(r, c) {
+            if (!activeTool || inventory[activeTool] <= 0 || isProcessingTurn || isRefilling) return;
+            let used = false;
+            let targetX = c * CELL_SIZE + CELL_SIZE / 2;
+            let targetY = r * CELL_SIZE + CELL_SIZE / 2;
+
+            if (activeTool === 'dragon') {
+                const frozen = blocks.filter(b => b.isFrozen);
+                if (frozen.length > 0) {
+                    blocks.forEach(b => { b.isFrozen = false; b.iceHp = 0; });
+                    used = true;
+                    showToast("Dragão: Gelo derretido!");
+                    targetX = canvas.width / 2; targetY = canvas.height / 2;
+                }
+            } else if (activeTool === 'hammer') {
+                const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
+                if (b && b.w > 1 && !b.isFrozen) {
+                    b.w--; used = true;
+                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                }
+            } else if (activeTool === 'lightning') {
+                const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
+                if (b && !b.isFrozen) {
+                    const surround = blocks.filter(item => Math.abs(item.targetR - b.targetR) <= 1 && Math.abs(item.c - b.c) <= 2 && !item.isFrozen);
+                    blocks = blocks.filter(item => !surround.includes(item));
+                    used = true;
+                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                }
+            } else if (activeTool === 'tractor') {
+                const targets = blocks.filter(b => c >= b.c && c < b.c + b.w && !b.isFrozen);
+                if (targets.length > 0) {
+                    blocks = blocks.filter(item => {
+                        if (c >= item.c && c < item.c + item.w && !item.isFrozen) return false;
+                        return true;
+                    });
+                    used = true;
+                    targetX = c * CELL_SIZE + CELL_SIZE / 2; targetY = canvas.height / 2;
+                }
+            } else if (activeTool === 'fire') {
+                const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
+                if (b && b.isFrozen) {
+                    b.iceHp--; if (b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; }
+                    used = true;
+                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                }
+            } else if (activeTool === 'superfire') {
+                const colBlocks = blocks.filter(b => c >= b.c && c < b.c + b.w && b.isFrozen);
+                if (colBlocks.length > 0) {
+                    blocks.forEach(item => {
+                        if (c >= item.c && c < item.c + item.w && item.isFrozen) {
+                            item.iceHp--; if (item.iceHp <= 0) { item.isFrozen = false; item.iceHp = 0; }
+                            used = true;
+                        }
+                    });
+                    targetX = c * CELL_SIZE + CELL_SIZE / 2; targetY = canvas.height / 2;
+                }
+            }
+
+            if (used) {
+                inventory[activeTool]--;
+                saveData();
+                playExplosionSound();
+                createExplosion(targetX, targetY, '#fff');
+                cancelTool();
+                isProcessingTurn = true;
+                setTimeout(() => { checkGravity(() => { isProcessingTurn = false; checkStuckState(); }, true); }, 100);
+            } else {
+                showToast("Alvo Inválido!", "error");
+                playErrorSound();
+            }
+        }
+
         function giveChestReward(x, y) {
             const rand = Math.random();
             if (rand < 0.9) {
                 createFloatingText(x, y, `Vazio...`, "#9ca3af");
             } else {
                 const items = ['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'shield', 'dragon'];
-                const itemKey = items[Math.floor(Math.random() * items.length)];
-                inventory[itemKey]++;
-                const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', shield: '🛡️', dragon: '🐉' };
-                createFloatingText(x, y, `${itemIcons[itemKey]} +1`, "#3b82f6");
-                showToast(`Baú: Item ${itemKey.toUpperCase()} ganho!`, 'success');
+                let itemKey = items[Math.floor(Math.random() * items.length)];
+
+                if (itemKey === 'shield') {
+                    applyRandomItem(x, y, 'shield');
+                } else {
+                    inventory[itemKey]++;
+                    const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉' };
+                    showToast(`+1 ${itemIcons[itemKey]} Guardado!`, 'info');
+                    createFloatingText(x, y, `+1 ${itemIcons[itemKey]}`, "#facc15");
+                    updateInventoryUI();
+                    saveData();
+                }
             }
-            updateInventoryUI(); saveData();
             updateUI();
         }
 
-        function cancelTool() {
-            activeTool = null;
-            itemUsePanel.classList.add('hidden');
-            itemUsePanel.classList.remove('flex');
-            updateInventoryUI();
-            if (isStuckMode) toggleStuckUI(true);
+        function applyRandomItem(x, y, forceItem = null) {
+            const items = ['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'shield', 'dragon'];
+            let itemKey = forceItem || items[Math.floor(Math.random() * items.length)];
+            const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', shield: '🛡️', dragon: '🐉' };
+
+            let used = false;
+            let targetX = x, targetY = y;
+
+            if (itemKey === 'dragon') {
+                const frozen = blocks.filter(b => b.isFrozen);
+                if (frozen.length > 0) {
+                    blocks.forEach(b => { b.isFrozen = false; b.iceHp = 0; });
+                    used = true;
+                    showToast("Dragão: Gelo derretido!");
+                }
+            } else if (itemKey === 'shield') {
+                if (!wizardShieldActive) {
+                    wizardShieldActive = true; wizardShieldTime = 30;
+                    updateWizardUI();
+                    if (shieldInterval) clearInterval(shieldInterval);
+                    shieldInterval = setInterval(() => {
+                        wizardShieldTime--;
+                        wizardTimerEl.textContent = `${wizardShieldTime}s`;
+                        if (wizardShieldTime <= 0) {
+                            wizardShieldActive = false; clearInterval(shieldInterval); updateWizardUI();
+                        }
+                    }, 1000);
+                    used = true;
+                    showToast("Escudo Ativado!");
+                }
+            } else if (itemKey === 'hammer') {
+                const targets = blocks.filter(b => b.w > 1 && !b.isFrozen && b.targetR < ROWS);
+                if (targets.length > 0) {
+                    const b = targets[Math.floor(Math.random() * targets.length)];
+                    b.w--; used = true;
+                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                }
+            } else if (itemKey === 'lightning') {
+                const targets = blocks.filter(b => !b.isFrozen && b.targetR < ROWS);
+                if (targets.length > 0) {
+                    const b = targets[Math.floor(Math.random() * targets.length)];
+                    const surround = blocks.filter(item => Math.abs(item.targetR - b.targetR) <= 1 && Math.abs(item.c - b.c) <= 2 && !item.isFrozen);
+                    blocks = blocks.filter(item => !surround.includes(item));
+                    used = true;
+                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                }
+            } else if (itemKey === 'tractor') {
+                const targets = blocks.filter(b => b.targetR < ROWS);
+                if (targets.length > 0) {
+                    const targetsWithNonFrozen = targets.filter(b => !b.isFrozen);
+                    if (targetsWithNonFrozen.length > 0) {
+                        const randC = targetsWithNonFrozen[Math.floor(Math.random() * targetsWithNonFrozen.length)].c;
+                        blocks = blocks.filter(item => {
+                            if (randC >= item.c && randC < item.c + item.w && !item.isFrozen) return false;
+                            return true;
+                        });
+                        used = true;
+                        targetX = randC * CELL_SIZE + CELL_SIZE / 2; targetY = canvas.height / 2;
+                    }
+                }
+            } else if (itemKey === 'fire') {
+                const targets = blocks.filter(b => b.isFrozen);
+                if (targets.length > 0) {
+                    const b = targets[Math.floor(Math.random() * targets.length)];
+                    b.iceHp--; if (b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; }
+                    used = true;
+                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                }
+            } else if (itemKey === 'superfire') {
+                const targets = blocks.filter(b => b.isFrozen);
+                if (targets.length > 0) {
+                    const randC = targets[Math.floor(Math.random() * targets.length)].c;
+                    blocks.forEach(item => {
+                        if (randC >= item.c && randC < item.c + item.w && item.isFrozen) {
+                            item.iceHp--; if (item.iceHp <= 0) { item.isFrozen = false; item.iceHp = 0; }
+                            used = true;
+                        }
+                    });
+                    targetX = randC * CELL_SIZE + CELL_SIZE / 2; targetY = canvas.height / 2;
+                }
+            }
+
+            if (!used && !forceItem) {
+                // Se o item falhou (não tinha alvo), converte para o raio (que age livremente)
+                applyRandomItem(x, y, 'lightning');
+                return;
+            }
+
+            createFloatingText(x, y, `${itemIcons[itemKey]}`, "#3b82f6");
+
+            if (['hammer', 'tractor', 'lightning', 'fire', 'superfire'].includes(itemKey) && used) {
+                playExplosionSound();
+                createExplosion(targetX, targetY, '#fff');
+            }
         }
 
-        cancelItemBtn.addEventListener('click', cancelTool);
-
         // --- CONTROLES ---
+        inventoryToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isProcessingTurn || isRefilling || activeTool) return;
+            volumePopup.classList.add('hidden-menu');
+            inventoryMenuEl.classList.toggle('hidden-menu');
+        });
+
+        cancelItemBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cancelTool();
+        });
+
         volumeToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            inventoryMenuEl.classList.add('hidden-menu');
             volumePopup.classList.toggle('hidden-menu');
         });
 
         volumeSlider.addEventListener('input', (e) => masterVolume = e.target.value / 100);
 
-        inventoryToggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            inventoryMenuEl.classList.toggle('hidden-menu');
-        });
-
         // Click nas setas de ajuda
-        arrowInventory.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (isStuckMode) {
-                inventoryMenuEl.classList.remove('hidden-menu');
-            }
-        });
         arrowPreview.addEventListener('click', (e) => {
             e.stopPropagation();
             if (isStuckMode) executeForceUp();
@@ -631,11 +847,11 @@
         });
 
         window.addEventListener('click', (e) => {
-            if (!inventoryMenuEl.contains(e.target) && !inventoryToggleBtn.contains(e.target) && e.target !== arrowInventory) {
-                inventoryMenuEl.classList.add('hidden-menu');
-            }
             if (!volumePopup.contains(e.target) && !volumeToggleBtn.contains(e.target)) {
                 volumePopup.classList.add('hidden-menu');
+            }
+            if (!inventoryMenuEl.contains(e.target) && !inventoryToggleBtn.contains(e.target)) {
+                inventoryMenuEl.classList.add('hidden-menu');
             }
         });
 
@@ -698,13 +914,12 @@
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
             blocks = []; particles = []; score = 0; comboMultiplier = 0; wizardCharge = 0;
             isGameOverSequence = false; wizardShieldActive = false; turnCounter = 0;
-            isProcessingTurn = false; isRefilling = false; activeTool = null; selectedBlock = null;
+            isProcessingTurn = false; isRefilling = false; selectedBlock = null;
             hasGameStarted = true; isStuckMode = false;
 
             if (shieldInterval) clearInterval(shieldInterval);
             bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
-            // Reset inventário
-            inventory = { hammer: 0, fire: 0, superfire: 0, shield: 0, dragon: 0, tractor: 0, lightning: 0 };
+            inventory = { hammer: 0, tractor: 0, lightning: 0, fire: 0, superfire: 0, dragon: 0 };
 
             updateUI(); updateWizardUI(); updateInventoryUI();
             generateNextPreview();
@@ -712,7 +927,6 @@
             overlay.classList.add('hidden'); overlay.style.opacity = '0';
             comboDisplayEl.style.opacity = '0';
             toggleStuckUI(false);
-            cancelTool();
 
             loop();
             isRefilling = true;
@@ -774,12 +988,18 @@
             setTimeout(() => checkGravity(callback), 80);
         }
 
-        function triggerPushChain(onComplete) {
+        function triggerPushChain(onComplete, isFirstPush = true) {
             let linesBeforePush = turnLinesCleared;
+
+            if (!isFirstPush && blocks.some(b => b.targetR <= 1)) {
+                if (onComplete) onComplete();
+                return;
+            }
+
             pushNextRow(() => {
                 let linesFromPush = turnLinesCleared - linesBeforePush;
                 if (linesFromPush > 0) {
-                    setTimeout(() => triggerPushChain(onComplete), 150);
+                    setTimeout(() => triggerPushChain(onComplete, false), 150);
                 } else {
                     if (onComplete) onComplete();
                 }
@@ -901,9 +1121,9 @@
             const activeRowIndices = new Set(blocks.map(b => b.targetR));
             const maxRowIndex = blocks.length > 0 ? Math.min(...activeRowIndices) : ROWS;
 
-            gameWrapperEl.classList.remove('alert-yellow', 'alert-red');
-            if (maxRowIndex <= 2 && maxRowIndex >= 0) gameWrapperEl.classList.add('alert-red');
-            else if (maxRowIndex <= 4 && maxRowIndex >= 3) gameWrapperEl.classList.add('alert-yellow');
+            dangerOverlay.className = 'absolute inset-0 pointer-events-none transition-all duration-300 z-20 rounded-xl';
+            if (maxRowIndex <= 1 && maxRowIndex >= 0) dangerOverlay.classList.add('alert-red');
+            else if (maxRowIndex <= 4 && maxRowIndex > 1) dangerOverlay.classList.add('alert-yellow');
 
             // Se o topo da pilha estiver abaixo da linha 6 (índices 7, 8, 9), sobe linhas
             if (maxRowIndex > 4 || blocks.length === 0) {
@@ -938,11 +1158,9 @@
             isStuckMode = show;
             if (show) {
                 choiceMessage.classList.remove('hidden');
-                arrowInventory.classList.remove('hidden');
                 arrowPreview.classList.remove('hidden');
             } else {
                 choiceMessage.classList.add('hidden');
-                arrowInventory.classList.add('hidden');
                 arrowPreview.classList.add('hidden');
             }
         }
@@ -977,34 +1195,6 @@
             wizardTimerEl.classList.toggle('hidden', !wizardShieldActive);
         }
 
-        function useShield() {
-            if (inventory.shield > 0 && !wizardShieldActive) {
-                inventory.shield--;
-                wizardShieldActive = true; wizardShieldTime = 30;
-                updateInventoryUI(); updateWizardUI();
-                if (shieldInterval) clearInterval(shieldInterval);
-                shieldInterval = setInterval(() => {
-                    wizardShieldTime--;
-                    wizardTimerEl.textContent = `${wizardShieldTime}s`;
-                    if (wizardShieldTime <= 0) {
-                        wizardShieldActive = false; clearInterval(shieldInterval); updateWizardUI();
-                    }
-                }, 1000);
-                saveData(); showToast("Escudo Ativado!");
-                if (isStuckMode) toggleStuckUI(false);
-            }
-        }
-
-        function useDragon() {
-            if (inventory.dragon > 0) {
-                inventory.dragon--;
-                blocks.forEach(b => { b.isFrozen = false; b.iceHp = 0; });
-                updateInventoryUI(); updateUI(); saveData();
-                showToast("Dragão: Gelo derretido!");
-                checkStuckState();
-            }
-        }
-
         function gameOver() {
             if (isGameOverSequence) return;
             gameActive = false; isGameOverSequence = true;
@@ -1028,55 +1218,6 @@
             }
         }
 
-        function selectTool(tool) {
-            if (inventory[tool] > 0) {
-                activeTool = tool;
-                inventoryMenuEl.classList.add('hidden-menu');
-                itemUsePanel.classList.remove('hidden'); itemUsePanel.classList.add('flex');
-
-                const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo' };
-                itemUseMsg.textContent = `Clique num bloco para usar ${names[tool]}!`;
-                updateInventoryUI();
-
-                if (isStuckMode) {
-                    choiceMessage.classList.add('hidden');
-                    arrowInventory.classList.add('hidden');
-                    arrowPreview.classList.add('hidden');
-                }
-            }
-        }
-
-        function updateInventoryUI() {
-            const itemMap = {
-                hammer: { i: '🔨', d: 'Diminui o tamanho do bloco escolhido em 1. (não se aplica a bloco congelado)' },
-                tractor: { i: '🚜', d: 'Destrói os blocos da coluna inteira. (os blocos congelados permanecem na coluna)' },
-                lightning: { i: '⚡', d: 'Destrói o bloco que você escolher e todos ao seu redor.' },
-                fire: { i: '🔥', d: 'Remove 1 da resistência do gelo no bloco que você escolher' },
-                superfire: { i: '🔥🔥', d: 'Remove 1 da resistência de todos os gelos da coluna que você escolher' },
-                shield: { i: '🧙‍♂️', d: 'Impede o mago de usar seus poderes por 30 segundos' },
-                dragon: { i: '🐉', d: 'Remove o gelo de todos os blocos do mapa' }
-            };
-            inventoryContainer.innerHTML = '';
-            let total = 0;
-            Object.keys(itemMap).forEach(key => {
-                const count = inventory[key] || 0;
-                total += count;
-                const btn = document.createElement('button');
-                const isEmpty = count === 0;
-                btn.className = `shop-btn w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center text-2xl border border-slate-600 relative group ${activeTool === key ? 'active-tool' : ''} ${isEmpty ? 'opacity-40 grayscale' : ''}`;
-                btn.onclick = () => {
-                    if (isEmpty) return;
-                    if (key === 'shield') useShield();
-                    else if (key === 'dragon') useDragon();
-                    else selectTool(key);
-                };
-                btn.innerHTML = `${itemMap[key].i}<span class="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">${count}</span><div class="item-tooltip">${itemMap[key].d}</div>`;
-                inventoryContainer.appendChild(btn);
-            });
-            totalInventoryCountEl.textContent = total;
-            totalInventoryCountEl.classList.toggle('hidden', total === 0);
-        }
-
         function saveData() {
             localStorage.setItem('dropdom_best', bestScore);
             localStorage.setItem('dropdom_inventory', JSON.stringify(inventory));
@@ -1089,9 +1230,12 @@
         function handleStart(e) {
             if (!gameActive || isProcessingTurn || isRefilling) return;
             const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left, y = e.clientY - rect.top;
-            if (activeTool) { handleTool(x, y); return; }
 
             const c = Math.floor(x / CELL_SIZE), r = Math.floor(y / CELL_SIZE);
+            if (activeTool) {
+                handleTool(r, c);
+                return;
+            }
             const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
             if (b) {
                 if (b.isFrozen) {
@@ -1105,64 +1249,6 @@
                 blockStartX = b.x;
                 originalC = b.c;
                 playMoveSound();
-            }
-        }
-
-        function handleTool(x, y) {
-            const c = Math.floor(x / CELL_SIZE), r = Math.floor(y / CELL_SIZE);
-            const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
-            if (!b) return;
-
-            const restrictedTools = ['hammer', 'tractor', 'lightning'];
-            if (restrictedTools.includes(activeTool) && b.isFrozen) {
-                showToast("Blocos congelados são imunes a este item!", "error");
-                playErrorSound();
-                return;
-            }
-
-            let used = false;
-            if (activeTool === 'hammer') {
-                if (b.w > 1) { b.w--; used = true; }
-            }
-            else if (activeTool === 'tractor') {
-                const mouseCol = Math.floor(x / CELL_SIZE);
-                blocks = blocks.filter(item => {
-                    const intersects = (mouseCol >= item.c && mouseCol < item.c + item.w);
-                    if (intersects && !item.isFrozen) return false;
-                    return true;
-                });
-                used = true;
-            }
-            else if (activeTool === 'lightning') {
-                const targets = blocks.filter(item => Math.abs(item.targetR - b.targetR) <= 1 && Math.abs(item.c - b.c) <= 2 && !item.isFrozen);
-                blocks = blocks.filter(item => !targets.includes(item));
-                used = true;
-            }
-            else if (activeTool === 'fire') {
-                if (!b.isFrozen) { showToast("Use em Gelo!"); return; }
-                b.iceHp--; if (b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; } used = true;
-            }
-            else if (activeTool === 'superfire') {
-                const mouseCol = Math.floor(x / CELL_SIZE);
-                let hit = false;
-                blocks.forEach(item => {
-                    const intersects = (mouseCol >= item.c && mouseCol < item.c + item.w);
-                    if (intersects && item.isFrozen) {
-                        item.iceHp--; if (item.iceHp <= 0) { item.isFrozen = false; item.iceHp = 0; }
-                        hit = true;
-                    }
-                });
-                if (hit) used = true;
-            }
-
-            if (used) {
-                inventory[activeTool]--;
-                cancelTool();
-                playExplosionSound();
-                createExplosion(x, y, '#fff');
-                updateInventoryUI(); saveData();
-                isProcessingTurn = true;
-                checkGravity(() => { isProcessingTurn = false; checkStuckState(); }, true);
             }
         }
 
@@ -1225,7 +1311,7 @@
                 ctx.fillStyle = '#1e293b'; ctx.fillRect(0, ROWS * CELL_SIZE, canvas.width, CELL_SIZE + 5);
                 ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, ROWS * CELL_SIZE); ctx.lineTo(canvas.width, ROWS * CELL_SIZE); ctx.stroke();
 
-                if (selectedBlock && !activeTool) {
+                if (selectedBlock) {
                     const idealC = Math.round(selectedBlock.x / CELL_SIZE);
                     ctx.save();
                     ctx.globalAlpha = 0.15; ctx.strokeStyle = selectedBlock.color; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
