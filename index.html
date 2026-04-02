@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-pt">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800;900&display=swap');
-        
+
         body {
             background-color: #0f172a;
             color: white;
@@ -30,7 +31,11 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
-        .shop-btn:active { transform: scale(0.92); }
+
+        .shop-btn:active {
+            transform: scale(0.92);
+        }
+
         .shop-btn.active-tool {
             border-color: #facc15 !important;
             box-shadow: 0 0 15px rgba(250, 204, 21, 0.6);
@@ -59,10 +64,10 @@
             border: 1px solid #475569;
             text-align: center;
             line-height: 1.3;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             font-weight: 500;
         }
-        
+
         .group:hover .item-tooltip {
             visibility: visible;
             opacity: 1;
@@ -88,6 +93,7 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
             font-weight: 600;
         }
+
         .group:hover .tooltip {
             visibility: visible;
             opacity: 1;
@@ -106,6 +112,7 @@
             transform-origin: top center;
             z-index: 70;
         }
+
         .popup-menu.hidden-menu {
             opacity: 0;
             transform: translate(-50%, -20px) scale(0.95);
@@ -116,26 +123,63 @@
             border-color: #3b82f6 !important;
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.6) !important;
         }
-        
+
         .alert-yellow {
             animation: pulse-yellow 1.5s infinite ease-in-out;
             border-color: #eab308 !important;
             box-shadow: inset 0 0 30px rgba(234, 179, 8, 0.15) !important;
         }
+
         .alert-red {
             animation: pulse-red 0.8s infinite ease-in-out;
             border-color: #ef4444 !important;
             box-shadow: inset 0 0 50px rgba(239, 68, 68, 0.3) !important;
         }
+
         .alert-freeze {
             animation: pulse-freeze 0.6s ease-out 2;
             border-color: #22d3ee !important;
             box-shadow: 0 0 30px #22d3ee, inset 0 0 20px #22d3ee !important;
         }
 
-        @keyframes pulse-yellow { 0%, 100% { box-shadow: 0 0 5px #eab308; } 50% { box-shadow: 0 0 20px #eab308; } }
-        @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 10px #ef4444; } 50% { box-shadow: 0 0 30px #ef4444; } }
-        @keyframes pulse-freeze { 0% { opacity: 0.5; } 50% { opacity: 1; border-width: 4px; } 100% { opacity: 0.5; } }
+        @keyframes pulse-yellow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 5px #eab308;
+            }
+
+            50% {
+                box-shadow: 0 0 20px #eab308;
+            }
+        }
+
+        @keyframes pulse-red {
+
+            0%,
+            100% {
+                box-shadow: 0 0 10px #ef4444;
+            }
+
+            50% {
+                box-shadow: 0 0 30px #ef4444;
+            }
+        }
+
+        @keyframes pulse-freeze {
+            0% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+                border-width: 4px;
+            }
+
+            100% {
+                opacity: 0.5;
+            }
+        }
 
         .floating-text {
             position: absolute;
@@ -143,34 +187,65 @@
             pointer-events: none;
             font-weight: 800;
             z-index: 80;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
             font-family: 'Rajdhani', sans-serif;
             white-space: nowrap;
             transform: translateX(-50%);
         }
 
         @keyframes floatUp {
-            0% { transform: translate(-50%, 0) scale(0.8); opacity: 0; }
-            20% { transform: translate(-50%, -20px) scale(1.1); opacity: 1; }
-            100% { transform: translate(-50%, -80px) scale(1); opacity: 0; }
+            0% {
+                transform: translate(-50%, 0) scale(0.8);
+                opacity: 0;
+            }
+
+            20% {
+                transform: translate(-50%, -20px) scale(1.1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -80px) scale(1);
+                opacity: 0;
+            }
         }
-        
+
         #combo-display {
-            text-shadow: 0 4px 8px rgba(0,0,0,0.8), 0 0 25px rgba(249, 115, 22, 0.8);
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.8), 0 0 25px rgba(249, 115, 22, 0.8);
             pointer-events: none;
             font-style: italic;
             transition: left 0.4s ease-out, top 0.4s ease-out, opacity 0.5s ease-in, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             opacity: 0;
             z-index: 90;
-            font-size: 2rem; 
+            font-size: 2rem;
             font-weight: 900;
             filter: drop-shadow(0 0 5px rgba(249, 115, 22, 0.5));
         }
-        .combo-pulse { transform: translate(-50%, -50%) scale(1.3) rotate(-5deg); }
-        .fade-out-slow { opacity: 0 !important; transition: opacity 0.8s ease-out !important; }
 
-        .bounce-up { animation: bounce-up 2s infinite; }
-        @keyframes bounce-up { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .combo-pulse {
+            transform: translate(-50%, -50%) scale(1.3) rotate(-5deg);
+        }
+
+        .fade-out-slow {
+            opacity: 0 !important;
+            transition: opacity 0.8s ease-out !important;
+        }
+
+        .bounce-up {
+            animation: bounce-up 2s infinite;
+        }
+
+        @keyframes bounce-up {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
 
         /* Setas interativas */
         .choice-arrow {
@@ -183,65 +258,108 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
+
         .choice-arrow:hover {
             transform: scale(1.2);
             color: #facc15;
         }
+
         @keyframes bounce-arrow {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
         }
 
-        input[type=range] { -webkit-appearance: none; background: transparent; }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
-            background: #e2e8f0; cursor: pointer; margin-top: -6px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5); transition: transform 0.1s;
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
         }
-        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
         input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; cursor: pointer; background: #475569; border-radius: 2px;
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #475569;
+            border-radius: 2px;
         }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col items-center justify-center bg-slate-900 gap-4 overflow-hidden select-none">
+
+<body
+    class="h-screen w-screen flex flex-col items-center justify-center bg-slate-900 gap-4 overflow-hidden select-none">
 
     <!-- HUD SUPERIOR -->
     <div class="fixed top-4 left-1/2 -translate-x-1/2 z-60 flex gap-6 items-center w-full justify-center px-4 max-w-md">
-        
-        <button id="inventory-toggle" class="hud-panel p-3 rounded-xl hover:scale-105 transition-all active:scale-95 group border border-blue-500/30 relative shadow-lg shadow-blue-900/20">
+
+        <button id="inventory-toggle"
+            class="hud-panel p-3 rounded-xl hover:scale-105 transition-all active:scale-95 group border border-blue-500/30 relative shadow-lg shadow-blue-900/20">
             <span class="text-2xl filter drop-shadow-md text-blue-400"><i class="fas fa-briefcase"></i></span>
             <div class="tooltip">Inventário</div>
-            <span id="total-inventory-count" class="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full hidden font-bold border border-slate-900">0</span>
+            <span id="total-inventory-count"
+                class="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full hidden font-bold border border-slate-900">0</span>
         </button>
 
-        <div class="hud-panel p-2 flex flex-col items-center gap-1 w-28 relative transition-all duration-300 mx-2 shadow-lg shadow-purple-900/20" id="wizard-container">
-            <div class="text-3xl filter drop-shadow-[0_0_10px_rgba(147,51,234,0.6)] transform hover:scale-110 transition-transform cursor-help" title="Feiticeiro">🧙‍♂️</div>
+        <div class="hud-panel p-2 flex flex-col items-center gap-1 w-28 relative transition-all duration-300 mx-2 shadow-lg shadow-purple-900/20"
+            id="wizard-container">
+            <div class="text-3xl filter drop-shadow-[0_0_10px_rgba(147,51,234,0.6)] transform hover:scale-110 transition-transform cursor-help"
+                title="Feiticeiro">🧙‍♂️</div>
             <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-600 relative">
-                <div id="wizard-bar" class="h-full bg-gradient-to-r from-purple-900 via-purple-600 to-purple-400 w-0 transition-all duration-500"></div>
+                <div id="wizard-bar"
+                    class="h-full bg-gradient-to-r from-purple-900 via-purple-600 to-purple-400 w-0 transition-all duration-500">
+                </div>
             </div>
-            <div id="wizard-timer" class="absolute -bottom-5 text-[10px] font-bold text-cyan-400 hidden bg-slate-900/80 px-2 rounded"></div>
+            <div id="wizard-timer"
+                class="absolute -bottom-5 text-[10px] font-bold text-cyan-400 hidden bg-slate-900/80 px-2 rounded">
+            </div>
         </div>
 
-        <button id="volume-toggle" class="hud-panel p-3 rounded-xl hover:scale-105 transition-all active:scale-95 group border border-gray-500/30 relative shadow-lg">
+        <button id="volume-toggle"
+            class="hud-panel p-3 rounded-xl hover:scale-105 transition-all active:scale-95 group border border-gray-500/30 relative shadow-lg">
             <span class="text-2xl filter drop-shadow-md text-gray-200"><i class="fas fa-volume-up"></i></span>
             <div class="tooltip">Áudio</div>
         </button>
     </div>
 
     <!-- POPUP VOLUME -->
-    <div id="volume-popup" class="fixed top-24 right-4 z-70 popup-menu hidden-menu bg-slate-900/95 p-4 rounded-xl border border-gray-500/30 shadow-2xl backdrop-blur-md w-48">
-        <label class="text-[10px] text-gray-400 uppercase font-bold block mb-3 tracking-widest text-center">Volume</label>
+    <div id="volume-popup"
+        class="fixed top-24 right-4 z-70 popup-menu hidden-menu bg-slate-900/95 p-4 rounded-xl border border-gray-500/30 shadow-2xl backdrop-blur-md w-48">
+        <label
+            class="text-[10px] text-gray-400 uppercase font-bold block mb-3 tracking-widest text-center">Volume</label>
         <div class="flex items-center gap-3 text-gray-400">
             <i class="fas fa-volume-off text-xs"></i>
-            <input type="range" id="volume-slider" min="0" max="100" value="50" class="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            <input type="range" id="volume-slider" min="0" max="100" value="50"
+                class="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer">
             <i class="fas fa-volume-up text-xs"></i>
         </div>
     </div>
 
     <!-- PAINEL DE ESCOLHA (STUCK) -->
-    <div id="choice-message" class="fixed top-1/3 left-1/2 -translate-x-1/2 z-[85] text-center hidden pointer-events-none">
-        <h2 class="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-pulse">FAÇA SUA ESCOLHA</h2>
+    <div id="choice-message"
+        class="fixed top-1/3 left-1/2 -translate-x-1/2 z-[85] text-center hidden pointer-events-none">
+        <h2 class="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-pulse">FAÇA SUA
+            ESCOLHA</h2>
     </div>
 
     <div id="arrow-inventory" class="choice-arrow hidden" style="top: 80px; left: calc(50% - 90px);">
@@ -252,52 +370,74 @@
     </div>
 
     <!-- PAINEL DE USO DE ITEM -->
-    <div id="item-use-panel" class="fixed top-24 left-1/2 -translate-x-1/2 z-[75] bg-slate-900/95 border border-yellow-500/50 p-4 rounded-xl shadow-2xl backdrop-blur-md hidden flex-col items-center gap-2 transform transition-all">
+    <div id="item-use-panel"
+        class="fixed top-24 left-1/2 -translate-x-1/2 z-[75] bg-slate-900/95 border border-yellow-500/50 p-4 rounded-xl shadow-2xl backdrop-blur-md hidden flex-col items-center gap-2 transform transition-all">
         <p class="text-sm font-bold text-yellow-400" id="item-use-msg">Clique num bloco para usar!</p>
-        <button id="cancel-item-btn" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-4 py-1.5 rounded-lg border border-slate-600 transition-colors">Cancelar</button>
+        <button id="cancel-item-btn"
+            class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-4 py-1.5 rounded-lg border border-slate-600 transition-colors">Cancelar</button>
     </div>
 
     <!-- INVENTÁRIO (POPUP) -->
-    <div id="inventory-menu" class="fixed top-24 left-1/2 z-70 flex gap-4 flex-wrap justify-center max-w-[340px] popup-menu hidden-menu bg-slate-900/95 p-5 rounded-2xl border border-blue-500/30 shadow-2xl backdrop-blur-md">
-        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold px-3 py-0.5 rounded shadow tracking-widest border border-blue-400">SUA MOCHILA</div>
+    <div id="inventory-menu"
+        class="fixed top-24 left-1/2 z-70 flex gap-4 flex-wrap justify-center max-w-[340px] popup-menu hidden-menu bg-slate-900/95 p-5 rounded-2xl border border-blue-500/30 shadow-2xl backdrop-blur-md">
+        <div
+            class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold px-3 py-0.5 rounded shadow tracking-widest border border-blue-400">
+            SUA MOCHILA</div>
         <div id="inventory-items-container" class="flex gap-3 flex-wrap justify-center min-h-[50px]"></div>
     </div>
 
     <!-- HUD LATERAIS (PONTUAÇÃO) -->
     <div class="fixed top-28 left-4 z-40 flex flex-col gap-3">
-        <div class="hud-panel px-4 py-2 flex flex-col gap-1 w-44 border-l-4 border-blue-500 shadow-lg shadow-blue-900/10">
+        <div
+            class="hud-panel px-4 py-2 flex flex-col gap-1 w-44 border-l-4 border-blue-500 shadow-lg shadow-blue-900/10">
             <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-[10px] border border-blue-500/50">★</div>
-                <span class="text-[10px] uppercase opacity-70 leading-none tracking-wide text-blue-200">Pontuação Atual</span>
+                <div
+                    class="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-[10px] border border-blue-500/50">
+                    ★</div>
+                <span class="text-[10px] uppercase opacity-70 leading-none tracking-wide text-blue-200">Pontuação
+                    Atual</span>
             </div>
-            <p id="score-display" class="text-2xl font-bold text-white leading-none text-right font-mono tracking-tighter">0</p>
+            <p id="score-display"
+                class="text-2xl font-bold text-white leading-none text-right font-mono tracking-tighter">0</p>
         </div>
 
-        <div class="hud-panel px-4 py-2 flex flex-col gap-1 w-44 border-l-4 border-orange-500 shadow-lg shadow-orange-900/10">
+        <div
+            class="hud-panel px-4 py-2 flex flex-col gap-1 w-44 border-l-4 border-orange-500 shadow-lg shadow-orange-900/10">
             <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold text-[10px] border border-orange-500/50">🏆</div>
+                <div
+                    class="w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold text-[10px] border border-orange-500/50">
+                    🏆</div>
                 <span class="text-[10px] uppercase opacity-70 leading-none tracking-wide text-orange-200">Recorde</span>
             </div>
-            <p id="best-display" class="text-2xl font-bold text-white leading-none text-right font-mono tracking-tighter">0</p>
+            <p id="best-display"
+                class="text-2xl font-bold text-white leading-none text-right font-mono tracking-tighter">0</p>
         </div>
     </div>
 
     <!-- TABULEIRO -->
-    <div id="game-wrapper" class="relative p-1.5 rounded-2xl bg-slate-800 shadow-2xl border border-slate-700 mt-28 transition-all duration-300 mx-auto">
-        <div id="combo-display" class="absolute z-40 opacity-0 text-orange-400 font-black uppercase text-center select-none pointer-events-none drop-shadow-md">
+    <div id="game-wrapper"
+        class="relative p-1.5 rounded-2xl bg-slate-800 shadow-2xl border border-slate-700 mt-28 transition-all duration-300 mx-auto">
+        <div id="combo-display"
+            class="absolute z-40 opacity-0 text-orange-400 font-black uppercase text-center select-none pointer-events-none drop-shadow-md">
             COMBO<br>x2
         </div>
 
         <canvas id="gameCanvas" class="rounded-xl bg-slate-900 block cursor-pointer touch-none"></canvas>
-        
-        <div id="toast" class="absolute top-16 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-2xl text-sm font-bold opacity-0 pointer-events-none transition-all duration-300 z-50 whitespace-nowrap border border-red-500/50 flex items-center gap-2 transform translate-y-4">
+
+        <div id="toast"
+            class="absolute top-16 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-2xl text-sm font-bold opacity-0 pointer-events-none transition-all duration-300 z-50 whitespace-nowrap border border-red-500/50 flex items-center gap-2 transform translate-y-4">
             <i class="fas fa-exclamation-circle text-red-500"></i> <span id="toast-msg">Ação Inválida</span>
         </div>
-        
-        <div id="freeze-overlay" class="absolute inset-0 bg-cyan-500/10 pointer-events-none opacity-0 transition-opacity duration-500 z-10 border-4 border-cyan-400/30 rounded-xl"></div>
-        
-        <div id="overlay" class="absolute inset-0 bg-black/95 flex flex-col items-center justify-center z-50 hidden opacity-0 transition-opacity duration-500 rounded-xl backdrop-blur-sm">
-            <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 mb-2 tracking-tighter filter drop-shadow-lg">GAME OVER</h1>
+
+        <div id="freeze-overlay"
+            class="absolute inset-0 bg-cyan-500/10 pointer-events-none opacity-0 transition-opacity duration-500 z-10 border-4 border-cyan-400/30 rounded-xl">
+        </div>
+
+        <div id="overlay"
+            class="absolute inset-0 bg-black/95 flex flex-col items-center justify-center z-50 hidden opacity-0 transition-opacity duration-500 rounded-xl backdrop-blur-sm">
+            <h1
+                class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 mb-2 tracking-tighter filter drop-shadow-lg">
+                GAME OVER</h1>
             <div class="w-full max-w-[200px] h-1 bg-slate-700 rounded-full mb-8"></div>
             <div class="grid grid-cols-2 gap-8 text-center mb-10 w-full px-12">
                 <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
@@ -309,8 +449,9 @@
                     <p id="final-best" class="text-3xl font-mono font-bold text-white">0</p>
                 </div>
             </div>
-            
-            <button id="restart-btn" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-900/50 uppercase tracking-widest text-sm flex items-center gap-2">
+
+            <button id="restart-btn"
+                class="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-900/50 uppercase tracking-widest text-sm flex items-center gap-2">
                 <i class="fas fa-redo"></i> Jogar Novamente
             </button>
         </div>
@@ -343,7 +484,7 @@
         const itemUsePanel = document.getElementById('item-use-panel');
         const itemUseMsg = document.getElementById('item-use-msg');
         const cancelItemBtn = document.getElementById('cancel-item-btn');
-        
+
         // Elementos de Decisão (Stuck State)
         const choiceMessage = document.getElementById('choice-message');
         const arrowInventory = document.getElementById('arrow-inventory');
@@ -351,7 +492,7 @@
 
         // Configurações
         const COLORS = { 1: '#ef4444', 2: '#22c55e', 3: '#3b82f6', 4: '#a855f7' };
-        const COLS = 8, ROWS = 10; 
+        const COLS = 8, ROWS = 10;
         let CELL_SIZE = 40;
 
         // Estado
@@ -360,7 +501,7 @@
         let inventory = { hammer: 0, fire: 0, superfire: 0, shield: 0, dragon: 0, tractor: 0, lightning: 0 };
         const WIZARD_MAX = 100, WIZARD_STEP = 20;
 
-        let comboHideTimer = null; 
+        let comboHideTimer = null;
         let wizardCharge = 0, wizardShieldActive = false, wizardShieldTime = 0, shieldInterval = null;
         let gameActive = false, isProcessingTurn = false, isRefilling = false, comboMultiplier = 0;
         let activeTool = null, selectedBlock = null, dragStartX = 0, blockStartX = 0, originalC = 0;
@@ -368,7 +509,7 @@
         let turnCounter = 0;
         let animationFrameId = null;
         let isStuckMode = false;
-        let turnLinesCleared = 0; 
+        let turnLinesCleared = 0;
         let waitingForForceUp = false;
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -393,7 +534,7 @@
         function playMoveSound() { playTone(300, 'sine', 0.05, 0.2); }
         function playFreezeSound() { playTone(600, 'triangle', 0.1, 0.3); playTone(1200, 'sine', 0.3, 0.2); }
         function playErrorSound() { playTone(150, 'sawtooth', 0.15, 0.4); }
-        function playExplosionSound() { 
+        function playExplosionSound() {
             if (masterVolume <= 0.01) return;
             const duration = 0.15;
             const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * duration, audioCtx.sampleRate);
@@ -409,10 +550,10 @@
             noise.start();
         }
 
-        function showToast(msg, type='info') { 
+        function showToast(msg, type = 'info') {
             toastMsg.innerHTML = type === 'error' ? `<i class="fas fa-exclamation-circle text-red-500 mr-1"></i>${msg}` : msg;
-            toastEl.style.opacity = '1'; 
-            setTimeout(() => toastEl.style.opacity = '0', 2000); 
+            toastEl.style.opacity = '1';
+            setTimeout(() => toastEl.style.opacity = '0', 2000);
         }
 
         function createExplosion(x, y, color) {
@@ -429,12 +570,12 @@
             gameWrapperEl.appendChild(el);
             setTimeout(() => el.remove(), 1200);
         }
-        
+
         function giveChestReward(x, y) {
             const rand = Math.random();
-            if (rand < 0.9) { 
+            if (rand < 0.9) {
                 createFloatingText(x, y, `Vazio...`, "#9ca3af");
-            } else { 
+            } else {
                 const items = ['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'shield', 'dragon'];
                 const itemKey = items[Math.floor(Math.random() * items.length)];
                 inventory[itemKey]++;
@@ -443,7 +584,7 @@
                 showToast(`Baú: Item ${itemKey.toUpperCase()} ganho!`, 'success');
             }
             updateInventoryUI(); saveData();
-            updateUI(); 
+            updateUI();
         }
 
         function cancelTool() {
@@ -453,7 +594,7 @@
             updateInventoryUI();
             if (isStuckMode) toggleStuckUI(true);
         }
-        
+
         cancelItemBtn.addEventListener('click', cancelTool);
 
         // --- CONTROLES ---
@@ -463,30 +604,30 @@
         });
 
         volumeSlider.addEventListener('input', (e) => masterVolume = e.target.value / 100);
-        
-        inventoryToggleBtn.addEventListener('click', (e) => { 
-            e.stopPropagation(); 
-            inventoryMenuEl.classList.toggle('hidden-menu'); 
+
+        inventoryToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            inventoryMenuEl.classList.toggle('hidden-menu');
         });
 
         // Click nas setas de ajuda
         arrowInventory.addEventListener('click', (e) => {
             e.stopPropagation();
-            if(isStuckMode) {
+            if (isStuckMode) {
                 inventoryMenuEl.classList.remove('hidden-menu');
             }
         });
         arrowPreview.addEventListener('click', (e) => {
             e.stopPropagation();
-            if(isStuckMode) executeForceUp();
+            if (isStuckMode) executeForceUp();
         });
 
         gameWrapperEl.addEventListener('click', (e) => {
-             if (isStuckMode && !activeTool) {
-                 const rect = canvas.getBoundingClientRect();
-                 const y = e.clientY - rect.top;
-                 if (y > ROWS * CELL_SIZE) executeForceUp();
-             }
+            if (isStuckMode && !activeTool) {
+                const rect = canvas.getBoundingClientRect();
+                const y = e.clientY - rect.top;
+                if (y > ROWS * CELL_SIZE) executeForceUp();
+            }
         });
 
         window.addEventListener('click', (e) => {
@@ -499,18 +640,18 @@
         });
 
         function resizeCanvas() {
-            const h = window.innerHeight - 180; 
+            const h = window.innerHeight - 180;
             const w = window.innerWidth - 40;
-            CELL_SIZE = Math.min(Math.floor(h / (ROWS + 1.2)), Math.floor(w / COLS), 70); 
-            canvas.width = CELL_SIZE * COLS; 
-            canvas.height = ROWS * CELL_SIZE + CELL_SIZE + 5; 
+            CELL_SIZE = Math.min(Math.floor(h / (ROWS + 1.2)), Math.floor(w / COLS), 70);
+            canvas.width = CELL_SIZE * COLS;
+            canvas.height = ROWS * CELL_SIZE + CELL_SIZE + 5;
         }
         window.addEventListener('resize', resizeCanvas);
 
         class Block {
             constructor(c, r, w, isPreview = false) {
-                this.c = c; this.r = r; this.w = w; this.targetR = r; 
-                this.x = c * CELL_SIZE; this.y = r * CELL_SIZE; 
+                this.c = c; this.r = r; this.w = w; this.targetR = r;
+                this.x = c * CELL_SIZE; this.y = r * CELL_SIZE;
                 this.color = COLORS[w] || '#fff'; this.isPreview = isPreview;
                 this.isFrozen = false; this.iceHp = 0; this.hasChest = false;
                 this.isGray = false;
@@ -518,39 +659,39 @@
             draw(offsetY = 0) {
                 const targetY = this.targetR * CELL_SIZE + offsetY;
                 const dy = targetY - this.y;
-                if (Math.abs(dy) < 0.2) this.y = targetY; else this.y += dy * 0.15; 
+                if (Math.abs(dy) < 0.2) this.y = targetY; else this.y += dy * 0.15;
                 if (selectedBlock !== this && activeTool === null) {
                     const dx = this.c * CELL_SIZE - this.x;
-                    if (Math.abs(dx) < 0.2) this.x = this.c * CELL_SIZE; else this.x += dx * 0.3; 
+                    if (Math.abs(dx) < 0.2) this.x = this.c * CELL_SIZE; else this.x += dx * 0.3;
                 }
                 const gap = 3, r = 8;
                 // Prévia mais transparente (0.25)
                 const alpha = this.isPreview ? 0.25 : 1;
-                
+
                 ctx.globalAlpha = alpha;
                 ctx.fillStyle = this.isGray ? '#475569' : this.color;
                 ctx.shadowColor = this.isGray ? 'transparent' : this.color;
                 ctx.shadowBlur = this.isGray ? 0 : 8;
-                this.roundRect(this.x + gap, this.y + gap, (this.w * CELL_SIZE) - gap*2, CELL_SIZE - gap*2, r);
+                this.roundRect(this.x + gap, this.y + gap, (this.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r);
                 ctx.fill();
                 ctx.globalAlpha = 1;
 
-                if (!this.isGray) { 
-                    ctx.fillStyle = `rgba(255,255,255,${alpha * 0.2})`; 
-                    ctx.fillRect(this.x + gap + 4, this.y + gap + 4, (this.w * CELL_SIZE) - gap*2 - 8, (CELL_SIZE - gap*2)/2 - 2); 
+                if (!this.isGray) {
+                    ctx.fillStyle = `rgba(255,255,255,${alpha * 0.2})`;
+                    ctx.fillRect(this.x + gap + 4, this.y + gap + 4, (this.w * CELL_SIZE) - gap * 2 - 8, (CELL_SIZE - gap * 2) / 2 - 2);
                 }
-                
+
                 // Gelo e Baú só aparecem se não for prévia
                 if (this.hasChest && !this.isGray && !this.isPreview) {
                     ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🎁', this.x + (this.w * CELL_SIZE) / 2, this.y + CELL_SIZE / 2);
                 }
                 if (this.isFrozen && !this.isGray && !this.isPreview) {
                     ctx.shadowBlur = 15; ctx.shadowColor = "#22d3ee"; ctx.fillStyle = 'rgba(165, 243, 252, 0.4)';
-                    this.roundRect(this.x + gap, this.y + gap, (this.w * CELL_SIZE) - gap*2, CELL_SIZE - gap*2, r); ctx.fill();
+                    this.roundRect(this.x + gap, this.y + gap, (this.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r); ctx.fill();
                     ctx.shadowBlur = 0; ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(`🧊${this.iceHp}`, this.x + (this.w * CELL_SIZE) / 2, this.y + CELL_SIZE / 2);
                 }
             }
-            roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x+r, y); ctx.arcTo(x+w, y, x+w, y+h, r); ctx.arcTo(x+w, y+h, x, y+h, r); ctx.arcTo(x, y+h, x, y, r); ctx.arcTo(x, y, x+w, y, r); ctx.closePath(); }
+            roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
         }
 
         function initGame() {
@@ -559,20 +700,20 @@
             isGameOverSequence = false; wizardShieldActive = false; turnCounter = 0;
             isProcessingTurn = false; isRefilling = false; activeTool = null; selectedBlock = null;
             hasGameStarted = true; isStuckMode = false;
-            
-            if(shieldInterval) clearInterval(shieldInterval);
+
+            if (shieldInterval) clearInterval(shieldInterval);
             bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
             // Reset inventário
             inventory = { hammer: 0, fire: 0, superfire: 0, shield: 0, dragon: 0, tractor: 0, lightning: 0 };
-            
+
             updateUI(); updateWizardUI(); updateInventoryUI();
             generateNextPreview();
-            gameActive = true; 
+            gameActive = true;
             overlay.classList.add('hidden'); overlay.style.opacity = '0';
             comboDisplayEl.style.opacity = '0';
             toggleStuckUI(false);
             cancelTool();
-            
+
             loop();
             isRefilling = true;
             pushMultipleRows(6, () => { isRefilling = false; checkStuckState(); });
@@ -589,59 +730,71 @@
                 if (maxW <= 0) { c++; continue; }
                 let w = Math.floor(Math.random() * maxW) + 1;
                 const b = new Block(c, ROWS, w, true);
-                b.y = canvas.height + CELL_SIZE * 2; 
+                b.y = canvas.height + CELL_SIZE * 2;
                 nextRowBlocks.push(b);
                 c += w;
             }
-            
+
             // Lógica de Probabilidade (A partir do Turno 1)
             if (turnCounter > 0) {
-                 const rand = Math.random() * 100;
-                 if (rand < 40) {
-                     // 40% Apenas Gelo
-                     if (nextRowBlocks.length > 0) {
-                         const b = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
-                         b.isFrozen = true; b.iceHp = 1;
-                     }
-                 } else if (rand < 50) { // 40 + 10
-                     // 10% Apenas Baú
-                     if (nextRowBlocks.length > 0) {
-                         const b = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
-                         b.hasChest = true;
-                     }
-                 } else if (rand < 60) { // 50 + 10
-                     // 10% Gelo + Baú (mesmo ou diferentes)
-                     if (nextRowBlocks.length > 0) {
-                         const b1 = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
-                         b1.isFrozen = true; b1.iceHp = 1;
-                         const b2 = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
-                         b2.hasChest = true;
-                     }
-                 }
-                 // 40% Restantes (60-100) = Nada (Blocos normais)
+                const rand = Math.random() * 100;
+                if (rand < 40) {
+                    // 40% Apenas Gelo
+                    if (nextRowBlocks.length > 0) {
+                        const b = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
+                        b.isFrozen = true; b.iceHp = 1;
+                    }
+                } else if (rand < 50) { // 40 + 10
+                    // 10% Apenas Baú
+                    if (nextRowBlocks.length > 0) {
+                        const b = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
+                        b.hasChest = true;
+                    }
+                } else if (rand < 60) { // 50 + 10
+                    // 10% Gelo + Baú (mesmo ou diferentes)
+                    if (nextRowBlocks.length > 0) {
+                        const b1 = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
+                        b1.isFrozen = true; b1.iceHp = 1;
+                        const b2 = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
+                        b2.hasChest = true;
+                    }
+                }
+                // 40% Restantes (60-100) = Nada (Blocos normais)
             }
         }
 
         function pushNextRow(callback) {
-            turnCounter++; 
+            turnCounter++;
             blocks.forEach(b => b.targetR--);
             nextRowBlocks.forEach(b => {
-                b.r = ROWS; b.targetR = ROWS - 1; b.y = (ROWS + 1) * CELL_SIZE; 
+                b.r = ROWS; b.targetR = ROWS - 1; b.y = (ROWS + 1) * CELL_SIZE;
                 b.isPreview = false; blocks.push(b);
             });
-            generateNextPreview(); 
-            setTimeout(() => checkGravity(callback), 80); 
+            generateNextPreview();
+            setTimeout(() => checkGravity(callback), 80);
+        }
+
+        function triggerPushChain(onComplete) {
+            let linesBeforePush = turnLinesCleared;
+            pushNextRow(() => {
+                let linesFromPush = turnLinesCleared - linesBeforePush;
+                if (linesFromPush > 0) {
+                    setTimeout(() => triggerPushChain(onComplete), 150);
+                } else {
+                    if (onComplete) onComplete();
+                }
+            });
         }
 
         function executeForceUp() {
             if (isProcessingTurn || isRefilling) return;
             toggleStuckUI(false);
             isProcessingTurn = true;
-            turnLinesCleared = 0; 
+            turnLinesCleared = 0;
             waitingForForceUp = true;
-            pushNextRow(() => { 
-                updateWizardCharge(WIZARD_STEP); 
-                isProcessingTurn = false; 
+            triggerPushChain(() => {
+                updateWizardCharge(WIZARD_STEP);
+                isProcessingTurn = false;
                 waitingForForceUp = false;
                 checkAutoRefill();
             });
@@ -656,7 +809,7 @@
             });
 
             if (moved) {
-                setTimeout(() => checkGravity(callback, isFinalCheck), 100); 
+                setTimeout(() => checkGravity(callback, isFinalCheck), 100);
             } else {
                 let corrected = false;
                 for (let r = 0; r < ROWS; r++) {
@@ -685,65 +838,59 @@
             let linesToClear = [];
             for (let r = 0; r < ROWS; r++) {
                 let map = new Array(COLS).fill(0);
-                blocks.filter(b => b.targetR === r).forEach(b => { for(let i=0; i<b.w; i++) map[b.c+i] = 1; });
+                blocks.filter(b => b.targetR === r).forEach(b => { for (let i = 0; i < b.w; i++) map[b.c + i] = 1; });
                 if (map.every(v => v === 1)) linesToClear.push(r);
             }
-            
+
             if (linesToClear.length > 0) {
                 const linesCount = linesToClear.length;
-                turnLinesCleared += linesCount; 
-                
+                turnLinesCleared += linesCount;
+
                 let roundPoints = 0;
                 let blocksToRemove = [];
 
                 linesToClear.forEach(r => {
                     const rowBlocks = blocks.filter(b => b.targetR === r);
                     rowBlocks.forEach(b => {
-                        if(b.isFrozen) { 
-                            b.iceHp--; 
-                            if(b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; }
+                        if (b.isFrozen) {
+                            b.iceHp--;
+                            if (b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; }
                         } else {
                             if (b.hasChest) giveChestReward(b.x + (b.w * CELL_SIZE / 2), b.y);
-                            createExplosion(b.x+b.w*CELL_SIZE/2, b.y+CELL_SIZE/2, b.color);
+                            createExplosion(b.x + b.w * CELL_SIZE / 2, b.y + CELL_SIZE / 2, b.color);
                             blocksToRemove.push(b);
                         }
                     });
                     roundPoints += 100;
                 });
-                
+
                 if (blocksToRemove.length > 0) {
                     playExplosionSound();
                     blocks = blocks.filter(b => !blocksToRemove.includes(b));
-                    
+
                     const multiplier = Math.max(1, turnLinesCleared);
                     const totalPoints = roundPoints * multiplier;
-                    score += totalPoints; 
-                    if(score > bestScore) bestScore = score;
-                    createFloatingText(canvas.width/2 + 40, (linesToClear[0] * CELL_SIZE), `★ ${totalPoints}`, "#3b82f6");
+                    score += totalPoints;
+                    if (score > bestScore) bestScore = score;
+                    createFloatingText(canvas.width / 2 + 40, (linesToClear[0] * CELL_SIZE), `★ ${totalPoints}`, "#3b82f6");
 
                     saveData();
-                    updateUI(true); 
-                    
-                    setTimeout(() => checkGravity(callback, isFinalCheck), 250); 
+                    updateUI(true);
+
+                    setTimeout(() => checkGravity(callback, isFinalCheck), 250);
                 } else {
-                    if(callback) callback();
+                    if (callback) callback();
                 }
 
             } else {
                 if (blocks.some(b => b.targetR <= 0)) { gameOver(); return; }
-                
+
                 if (callback) {
                     callback();
                 } else {
                     isProcessingTurn = false;
-                    setTimeout(() => { if(!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
+                    setTimeout(() => { if (!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
                     checkAutoRefill();
-                }
-                
-                if (isFinalCheck && !isRefilling && !waitingForForceUp) {
-                    if (turnLinesCleared === 0) {
-                        updateWizardCharge(WIZARD_STEP);
-                    }
                 }
             }
         }
@@ -753,7 +900,7 @@
             if (isRefilling || isProcessingTurn) return;
             const activeRowIndices = new Set(blocks.map(b => b.targetR));
             const maxRowIndex = blocks.length > 0 ? Math.min(...activeRowIndices) : ROWS;
-            
+
             gameWrapperEl.classList.remove('alert-yellow', 'alert-red');
             if (maxRowIndex <= 2 && maxRowIndex >= 0) gameWrapperEl.classList.add('alert-red');
             else if (maxRowIndex <= 4 && maxRowIndex >= 3) gameWrapperEl.classList.add('alert-yellow');
@@ -761,13 +908,13 @@
             // Se o topo da pilha estiver abaixo da linha 6 (índices 7, 8, 9), sobe linhas
             if (maxRowIndex > 4 || blocks.length === 0) {
                 const rowsToAdd = maxRowIndex - 4; // Quantas linhas subir para chegar na 6 (índice 4)
-                if (rowsToAdd > 0) { 
+                if (rowsToAdd > 0) {
                     isRefilling = true; isProcessingTurn = true;
-                    pushMultipleRows(rowsToAdd, () => { 
+                    pushMultipleRows(rowsToAdd, () => {
                         isRefilling = false; isProcessingTurn = false;
                         setTimeout(() => { comboDisplayEl.style.opacity = "0"; }, 1500);
                         checkStuckState();
-                    }); 
+                    });
                 }
             } else {
                 checkStuckState();
@@ -814,7 +961,7 @@
 
         function triggerWizardSpell() {
             const eligible = blocks.filter(b => !b.isFrozen && b.targetR < ROWS && b !== selectedBlock);
-            if(eligible.length > 0) {
+            if (eligible.length > 0) {
                 const b = eligible[Math.floor(Math.random() * eligible.length)];
                 b.isFrozen = true; b.iceHp = 2;
                 showToast("O Feiticeiro lançou um feitiço!");
@@ -835,7 +982,7 @@
                 inventory.shield--;
                 wizardShieldActive = true; wizardShieldTime = 30;
                 updateInventoryUI(); updateWizardUI();
-                if(shieldInterval) clearInterval(shieldInterval);
+                if (shieldInterval) clearInterval(shieldInterval);
                 shieldInterval = setInterval(() => {
                     wizardShieldTime--;
                     wizardTimerEl.textContent = `${wizardShieldTime}s`;
@@ -844,7 +991,7 @@
                     }
                 }, 1000);
                 saveData(); showToast("Escudo Ativado!");
-                if(isStuckMode) toggleStuckUI(false);
+                if (isStuckMode) toggleStuckUI(false);
             }
         }
 
@@ -866,8 +1013,8 @@
             finalScoreEl.textContent = score; finalBestEl.textContent = bestScore;
         }
 
-        function updateUI(anim = false) { 
-            scoreEl.textContent = score; bestEl.textContent = bestScore; 
+        function updateUI(anim = false) {
+            scoreEl.textContent = score; bestEl.textContent = bestScore;
             if (turnLinesCleared >= 2) {
                 if (comboHideTimer) clearTimeout(comboHideTimer);
                 comboDisplayEl.style.top = `${(canvas.height / 2) - 80}px`;
@@ -876,7 +1023,7 @@
                 comboDisplayEl.innerHTML = `COMBO<br>x${turnLinesCleared}`;
                 comboDisplayEl.style.opacity = "1";
                 comboDisplayEl.classList.remove('combo-pulse');
-                void comboDisplayEl.offsetWidth; 
+                void comboDisplayEl.offsetWidth;
                 comboDisplayEl.classList.add('combo-pulse');
             }
         }
@@ -884,30 +1031,30 @@
         function selectTool(tool) {
             if (inventory[tool] > 0) {
                 activeTool = tool;
-                inventoryMenuEl.classList.add('hidden-menu'); 
+                inventoryMenuEl.classList.add('hidden-menu');
                 itemUsePanel.classList.remove('hidden'); itemUsePanel.classList.add('flex');
-                
-                const names = {hammer:'Martelo', tractor:'Trator', lightning:'Raio', fire:'Fogo', superfire:'Super Fogo'};
+
+                const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo' };
                 itemUseMsg.textContent = `Clique num bloco para usar ${names[tool]}!`;
                 updateInventoryUI();
-                
+
                 if (isStuckMode) {
-                     choiceMessage.classList.add('hidden');
-                     arrowInventory.classList.add('hidden');
-                     arrowPreview.classList.add('hidden');
+                    choiceMessage.classList.add('hidden');
+                    arrowInventory.classList.add('hidden');
+                    arrowPreview.classList.add('hidden');
                 }
             }
         }
 
-        function updateInventoryUI() { 
-            const itemMap = { 
-                hammer: {i:'🔨', d:'Diminui o tamanho do bloco escolhido em 1. (não se aplica a bloco congelado)'}, 
-                tractor: {i:'🚜', d:'Destrói os blocos da coluna inteira. (os blocos congelados permanecem na coluna)'}, 
-                lightning: {i:'⚡', d:'Destrói o bloco que você escolher e todos ao seu redor.'}, 
-                fire: {i:'🔥', d:'Remove 1 da resistência do gelo no bloco que você escolher'}, 
-                superfire: {i:'🔥🔥', d:'Remove 1 da resistência de todos os gelos da coluna que você escolher'}, 
-                shield: {i:'🧙‍♂️', d:'Impede o mago de usar seus poderes por 30 segundos'}, 
-                dragon: {i:'🐉', d:'Remove o gelo de todos os blocos do mapa'} 
+        function updateInventoryUI() {
+            const itemMap = {
+                hammer: { i: '🔨', d: 'Diminui o tamanho do bloco escolhido em 1. (não se aplica a bloco congelado)' },
+                tractor: { i: '🚜', d: 'Destrói os blocos da coluna inteira. (os blocos congelados permanecem na coluna)' },
+                lightning: { i: '⚡', d: 'Destrói o bloco que você escolher e todos ao seu redor.' },
+                fire: { i: '🔥', d: 'Remove 1 da resistência do gelo no bloco que você escolher' },
+                superfire: { i: '🔥🔥', d: 'Remove 1 da resistência de todos os gelos da coluna que você escolher' },
+                shield: { i: '🧙‍♂️', d: 'Impede o mago de usar seus poderes por 30 segundos' },
+                dragon: { i: '🐉', d: 'Remove o gelo de todos os blocos do mapa' }
             };
             inventoryContainer.innerHTML = '';
             let total = 0;
@@ -917,10 +1064,10 @@
                 const btn = document.createElement('button');
                 const isEmpty = count === 0;
                 btn.className = `shop-btn w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center text-2xl border border-slate-600 relative group ${activeTool === key ? 'active-tool' : ''} ${isEmpty ? 'opacity-40 grayscale' : ''}`;
-                btn.onclick = () => { 
-                    if (isEmpty) return; 
-                    if (key === 'shield') useShield(); 
-                    else if (key === 'dragon') useDragon(); 
+                btn.onclick = () => {
+                    if (isEmpty) return;
+                    if (key === 'shield') useShield();
+                    else if (key === 'dragon') useDragon();
                     else selectTool(key);
                 };
                 btn.innerHTML = `${itemMap[key].i}<span class="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">${count}</span><div class="item-tooltip">${itemMap[key].d}</div>`;
@@ -930,8 +1077,8 @@
             totalInventoryCountEl.classList.toggle('hidden', total === 0);
         }
 
-        function saveData() { 
-            localStorage.setItem('dropdom_best', bestScore); 
+        function saveData() {
+            localStorage.setItem('dropdom_best', bestScore);
             localStorage.setItem('dropdom_inventory', JSON.stringify(inventory));
         }
 
@@ -943,7 +1090,7 @@
             if (!gameActive || isProcessingTurn || isRefilling) return;
             const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left, y = e.clientY - rect.top;
             if (activeTool) { handleTool(x, y); return; }
-            
+
             const c = Math.floor(x / CELL_SIZE), r = Math.floor(y / CELL_SIZE);
             const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
             if (b) {
@@ -952,11 +1099,11 @@
                     playErrorSound();
                     return;
                 }
-                comboDisplayEl.style.opacity = "0"; 
-                selectedBlock = b; 
-                dragStartX = x; 
-                blockStartX = b.x; 
-                originalC = b.c; 
+                comboDisplayEl.style.opacity = "0";
+                selectedBlock = b;
+                dragStartX = x;
+                blockStartX = b.x;
+                originalC = b.c;
                 playMoveSound();
             }
         }
@@ -981,7 +1128,7 @@
                 const mouseCol = Math.floor(x / CELL_SIZE);
                 blocks = blocks.filter(item => {
                     const intersects = (mouseCol >= item.c && mouseCol < item.c + item.w);
-                    if(intersects && !item.isFrozen) return false;
+                    if (intersects && !item.isFrozen) return false;
                     return true;
                 });
                 used = true;
@@ -999,18 +1146,18 @@
                 const mouseCol = Math.floor(x / CELL_SIZE);
                 let hit = false;
                 blocks.forEach(item => {
-                     const intersects = (mouseCol >= item.c && mouseCol < item.c + item.w);
-                     if(intersects && item.isFrozen) {
-                         item.iceHp--; if(item.iceHp <= 0) { item.isFrozen = false; item.iceHp = 0; }
-                         hit = true;
-                     }
+                    const intersects = (mouseCol >= item.c && mouseCol < item.c + item.w);
+                    if (intersects && item.isFrozen) {
+                        item.iceHp--; if (item.iceHp <= 0) { item.isFrozen = false; item.iceHp = 0; }
+                        hit = true;
+                    }
                 });
-                if(hit) used = true;
+                if (hit) used = true;
             }
 
             if (used) {
                 inventory[activeTool]--;
-                cancelTool(); 
+                cancelTool();
                 playExplosionSound();
                 createExplosion(x, y, '#fff');
                 updateInventoryUI(); saveData();
@@ -1043,43 +1190,41 @@
             });
 
             if (!collision && idealC !== selectedBlock.c) {
-                selectedBlock.c = idealC; selectedBlock.x = idealC * CELL_SIZE; selectedBlock = null; 
-                isProcessingTurn = true; 
-                toggleStuckUI(false); 
-                
+                selectedBlock.c = idealC; selectedBlock.x = idealC * CELL_SIZE; selectedBlock = null;
+                isProcessingTurn = true;
+                toggleStuckUI(false);
+
                 // NOVO: Reseta o contador de linhas destruídas no início do turno
-                turnLinesCleared = 0; 
+                turnLinesCleared = 0;
 
                 checkGravity(() => {
-                    pushNextRow(() => {
-                        checkGravity(() => { 
-                            isProcessingTurn = false; 
-                            
-                            // Se nenhuma linha foi destruída em todo o processo, sobe mana
-                            if (turnLinesCleared === 0 && !isRefilling && !waitingForForceUp) {
-                                updateWizardCharge(8);
-                            }
+                    triggerPushChain(() => {
+                        isProcessingTurn = false;
 
-                            // Fade out do combo
-                            setTimeout(() => { if(!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
-                            checkAutoRefill();
-                        }, true); 
+                        // Se nenhuma linha foi destruída em todo o processo, sobe mana
+                        if (turnLinesCleared === 0 && !isRefilling && !waitingForForceUp) {
+                            updateWizardCharge(8);
+                        }
+
+                        // Fade out do combo
+                        setTimeout(() => { if (!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
+                        checkAutoRefill();
                     });
-                }, false); 
+                }, false);
             } else {
-                selectedBlock.x = selectedBlock.c * CELL_SIZE; selectedBlock = null; 
+                selectedBlock.x = selectedBlock.c * CELL_SIZE; selectedBlock = null;
             }
         }
 
         function loop() {
-            if(gameActive) {
+            if (gameActive) {
                 ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
-                for(let i=1; i<COLS; i++) { ctx.beginPath(); ctx.moveTo(i*CELL_SIZE, 0); ctx.lineTo(i*CELL_SIZE, canvas.height); ctx.stroke(); }
-                for(let j=1; j<ROWS; j++) { ctx.beginPath(); ctx.moveTo(0, j*CELL_SIZE); ctx.lineTo(canvas.width, j*CELL_SIZE); ctx.stroke(); }
+                for (let i = 1; i < COLS; i++) { ctx.beginPath(); ctx.moveTo(i * CELL_SIZE, 0); ctx.lineTo(i * CELL_SIZE, canvas.height); ctx.stroke(); }
+                for (let j = 1; j < ROWS; j++) { ctx.beginPath(); ctx.moveTo(0, j * CELL_SIZE); ctx.lineTo(canvas.width, j * CELL_SIZE); ctx.stroke(); }
                 ctx.fillStyle = '#1e293b'; ctx.fillRect(0, ROWS * CELL_SIZE, canvas.width, CELL_SIZE + 5);
                 ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, ROWS * CELL_SIZE); ctx.lineTo(canvas.width, ROWS * CELL_SIZE); ctx.stroke();
-                
+
                 if (selectedBlock && !activeTool) {
                     const idealC = Math.round(selectedBlock.x / CELL_SIZE);
                     ctx.save();
@@ -1091,7 +1236,7 @@
                         const hasCollision = blocks.some(b => { if (b === selectedBlock) return false; if (b.targetR !== nextR) return false; return !(idealC + selectedBlock.w <= b.c || b.c + b.w <= idealC); });
                         if (!hasCollision) dropR = nextR; else break;
                     }
-                    ctx.globalAlpha = 0.3; ctx.fillStyle = selectedBlock.color; ctx.setLineDash([]); 
+                    ctx.globalAlpha = 0.3; ctx.fillStyle = selectedBlock.color; ctx.setLineDash([]);
                     ctx.fillRect(idealC * CELL_SIZE + 4, dropR * CELL_SIZE + 4, (selectedBlock.w * CELL_SIZE) - 8, CELL_SIZE - 8);
                     ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.shadowColor = "#ffffff"; ctx.shadowBlur = 10;
                     ctx.strokeRect(idealC * CELL_SIZE + 4, dropR * CELL_SIZE + 4, (selectedBlock.w * CELL_SIZE) - 8, CELL_SIZE - 8);
@@ -1099,10 +1244,10 @@
                 }
                 blocks.forEach(b => b.draw());
                 nextRowBlocks.forEach(b => { ctx.save(); ctx.globalAlpha = 0.4; const py = (ROWS * CELL_SIZE) + 5 - (b.targetR * CELL_SIZE); b.draw(py); ctx.restore(); });
-                for (let i = particles.length - 1; i >= 0; i--) { 
-                    let p = particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.02;    
-                    ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4); 
-                    if (p.life <= 0) particles.splice(i, 1); 
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    let p = particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                    ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4);
+                    if (p.life <= 0) particles.splice(i, 1);
                 }
                 ctx.globalAlpha = 1;
                 animationFrameId = requestAnimationFrame(loop);
@@ -1110,10 +1255,11 @@
         }
 
         restartBtn.addEventListener('click', () => location.reload());
-        
+
         // Iniciar
         resizeCanvas();
         initGame(); // Inicia direto
     </script>
 </body>
+
 </html>
