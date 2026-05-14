@@ -337,6 +337,12 @@
             </div>
         </div>
 
+        <div id="clock-container"
+            class="hud-panel p-2 flex items-center justify-center gap-2 w-20 relative transition-all duration-300 mx-2 shadow-lg shadow-cyan-900/20 hidden border-cyan-500">
+            <i class="fas fa-clock text-cyan-400 animate-pulse"></i>
+            <span id="clock-timer" class="font-bold text-cyan-400 font-mono text-sm"></span>
+        </div>
+
         <button id="volume-toggle"
             class="hud-panel p-3 rounded-xl hover:scale-105 transition-all active:scale-95 group border border-gray-500/30 relative shadow-lg">
             <span class="text-2xl filter drop-shadow-md text-gray-200"><i class="fas fa-volume-up"></i></span>
@@ -481,6 +487,8 @@
         const wizardBarEl = document.getElementById('wizard-bar');
         const wizardContainerEl = document.getElementById('wizard-container');
         const wizardTimerEl = document.getElementById('wizard-timer');
+        const clockContainerEl = document.getElementById('clock-container');
+        const clockTimerEl = document.getElementById('clock-timer');
 
         // Variáveis DOM Inventário
         const inventoryToggleBtn = document.getElementById('inventory-toggle');
@@ -505,10 +513,11 @@
         const WIZARD_MAX = 100, WIZARD_STEP = 20;
 
         let activeTool = null;
-        let inventory = { hammer: 0, tractor: 0, lightning: 0, fire: 0, superfire: 0, dragon: 0, glove: 0 };
+        let inventory = { hammer: 0, tractor: 0, lightning: 0, fire: 0, superfire: 0, dragon: 0, glove: 0, marreta: 0, relogio: 0 };
 
         let comboHideTimer = null;
         let wizardCharge = 0, wizardShieldActive = false, wizardShieldTime = 0, shieldInterval = null;
+        let clockActive = false, clockTime = 0, clockInterval = null;
         let gameActive = false, isProcessingTurn = false, isRefilling = false, comboMultiplier = 0;
         let selectedBlock = null, dragStartX = 0, blockStartX = 0, originalC = 0;
         let isGameOverSequence = false;
@@ -587,8 +596,8 @@
         function updateInventoryUI() {
             inventoryContainer.innerHTML = '';
             let total = 0;
-            const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo', dragon: 'Dragão', glove: 'Luva' };
-            const icons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉', glove: '🧤' };
+            const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo', dragon: 'Dragão', glove: 'Luva', marreta: 'Espada', relogio: 'Relógio' };
+            const icons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉', glove: '🧤', marreta: '🗡️', relogio: '⏰' };
 
             for (let [key, count] of Object.entries(inventory)) {
                 if (key === 'shield') continue;
@@ -612,6 +621,40 @@
 
         function selectTool(key) {
             if (inventory[key] <= 0) return;
+
+            if (key === 'relogio') {
+                inventoryMenuEl.classList.add('hidden-menu');
+                if (!clockActive) {
+                    clockActive = true;
+                    clockTime = 30;
+                    inventory['relogio']--;
+                    saveData();
+                    updateInventoryUI();
+
+                    if (clockInterval) clearInterval(clockInterval);
+
+                    clockContainerEl.classList.remove('hidden');
+                    clockTimerEl.textContent = `${clockTime}s`;
+
+                    clockInterval = setInterval(() => {
+                        clockTime--;
+                        if (clockTime > 0) {
+                            clockTimerEl.textContent = `${clockTime}s`;
+                        } else {
+                            clockActive = false;
+                            clearInterval(clockInterval);
+                            clockContainerEl.classList.add('hidden');
+                            showToast("O tempo voltou a correr!", "info");
+                        }
+                    }, 1000);
+
+                    showToast("Tempo Parado por 30s!");
+                } else {
+                    showToast("Relógio já está ativo!", "error");
+                    playErrorSound();
+                }
+                return;
+            }
 
             if (key === 'dragon') {
                 inventoryMenuEl.classList.add('hidden-menu');
@@ -638,7 +681,7 @@
             inventoryMenuEl.classList.add('hidden-menu');
             itemUsePanel.classList.remove('hidden');
 
-            const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo', dragon: 'Dragão' };
+            const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo', dragon: 'Dragão', marreta: 'Espada', relogio: 'Relógio' };
             const msg = document.getElementById('item-use-msg');
             msg.textContent = `Aponte o ${names[key]}!`;
             gameWrapperEl.style.cursor = 'crosshair';
@@ -661,6 +704,21 @@
                 const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
                 if (b && b.w > 1) {
                     b.w--; used = true;
+                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                }
+            } else if (activeTool === 'marreta') {
+                const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
+                if (b && b.w > 1) {
+                    let w1 = Math.floor(b.w / 2);
+                    let w2 = Math.ceil(b.w / 2);
+                    b.w = w1;
+                    const newB = new Block(b.c + w1, b.r, w2, false);
+                    newB.targetR = b.targetR;
+                    newB.y = b.y;
+                    newB.isFrozen = b.isFrozen;
+                    newB.iceHp = b.iceHp;
+                    blocks.push(newB);
+                    used = true;
                     targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
                 }
             } else if (activeTool === 'lightning') {
@@ -731,14 +789,14 @@
             if (rand < 0.9) {
                 createFloatingText(x, y, `Vazio...`, "#9ca3af");
             } else {
-                const items = ['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'shield', 'dragon', 'glove'];
+                const items = ['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'shield', 'dragon', 'glove', 'marreta', 'relogio'];
                 let itemKey = items[Math.floor(Math.random() * items.length)];
 
                 if (itemKey === 'shield') {
                     applyRandomItem(x, y, 'shield');
                 } else {
                     inventory[itemKey]++;
-                    const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉', glove: '🧤' };
+                    const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉', glove: '🧤', marreta: '🗡️', relogio: '⏰' };
                     showToast(`+1 ${itemIcons[itemKey]} Guardado!`, 'info');
                     createFloatingText(x, y, `+1 ${itemIcons[itemKey]}`, "#facc15");
                     updateInventoryUI();
@@ -749,9 +807,9 @@
         }
 
         function applyRandomItem(x, y, forceItem = null) {
-            const items = ['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'shield', 'dragon'];
+            const items = ['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'shield', 'dragon', 'marreta', 'relogio'];
             let itemKey = forceItem || items[Math.floor(Math.random() * items.length)];
-            const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', shield: '🛡️', dragon: '🐉' };
+            const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', shield: '🛡️', dragon: '🐉', marreta: '🗡️', relogio: '⏰' };
 
             let used = false;
             let targetX = x, targetY = y;
@@ -778,11 +836,41 @@
                     used = true;
                     showToast("Escudo Ativado!");
                 }
+            } else if (itemKey === 'relogio') {
+                if (!clockActive) {
+                    clockActive = true; clockTime = 30;
+                    if (clockInterval) clearInterval(clockInterval);
+                    clockContainerEl.classList.remove('hidden');
+                    clockTimerEl.textContent = `${clockTime}s`;
+                    clockInterval = setInterval(() => {
+                        clockTime--;
+                        if (clockTime > 0) { clockTimerEl.textContent = `${clockTime}s`; }
+                        else { clockActive = false; clearInterval(clockInterval); clockContainerEl.classList.add('hidden'); showToast("O tempo voltou a correr!"); }
+                    }, 1000);
+                    used = true;
+                    showToast("Tempo Parado por 30s!");
+                }
             } else if (itemKey === 'hammer') {
                 const targets = blocks.filter(b => b.w > 1 && b.targetR < ROWS);
                 if (targets.length > 0) {
                     const b = targets[Math.floor(Math.random() * targets.length)];
                     b.w--; used = true;
+                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                }
+            } else if (itemKey === 'marreta') {
+                const targets = blocks.filter(b => b.w > 1 && b.targetR < ROWS);
+                if (targets.length > 0) {
+                    const b = targets[Math.floor(Math.random() * targets.length)];
+                    let w1 = Math.floor(b.w / 2);
+                    let w2 = Math.ceil(b.w / 2);
+                    b.w = w1;
+                    const newB = new Block(b.c + w1, b.r, w2, false);
+                    newB.targetR = b.targetR;
+                    newB.y = b.y;
+                    newB.isFrozen = b.isFrozen;
+                    newB.iceHp = b.iceHp;
+                    blocks.push(newB);
+                    used = true;
                     targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
                 }
             } else if (itemKey === 'lightning') {
@@ -849,7 +937,7 @@
 
             createFloatingText(x, y, `${itemIcons[itemKey]}`, "#3b82f6");
 
-            if (['hammer', 'tractor', 'lightning', 'fire', 'superfire'].includes(itemKey) && used) {
+            if (['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'marreta'].includes(itemKey) && used) {
                 playExplosionSound();
                 createExplosion(targetX, targetY, '#fff');
             }
@@ -968,7 +1056,10 @@
 
             if (shieldInterval) clearInterval(shieldInterval);
             bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
-            inventory = { hammer: 0, tractor: 0, lightning: 0, fire: 0, superfire: 0, dragon: 0, glove: 0 };
+            inventory = { hammer: 0, tractor: 0, lightning: 0, fire: 0, superfire: 0, dragon: 0, glove: 0, marreta: 0, relogio: 0 };
+            if (clockInterval) clearInterval(clockInterval);
+            clockActive = false; clockTime = 0;
+            if (clockContainerEl) clockContainerEl.classList.add('hidden');
 
             updateUI(); updateWizardUI(); updateInventoryUI();
             generateNextPreview();
@@ -1400,18 +1491,26 @@
                 turnLinesCleared = 0;
 
                 checkGravity(() => {
-                    triggerPushChain(() => {
+                    if (clockActive) {
                         isProcessingTurn = false;
-
-                        // Se nenhuma linha foi destruída em todo o processo, sobe mana
                         if (turnLinesCleared === 0 && !isRefilling && !waitingForForceUp) {
                             updateWizardCharge(8);
                         }
-
-                        // Fade out do combo
                         setTimeout(() => { if (!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
-                        checkAutoRefill();
-                    });
+                    } else {
+                        triggerPushChain(() => {
+                            isProcessingTurn = false;
+
+                            // Se nenhuma linha foi destruída em todo o processo, sobe mana
+                            if (turnLinesCleared === 0 && !isRefilling && !waitingForForceUp) {
+                                updateWizardCharge(8);
+                            }
+
+                            // Fade out do combo
+                            setTimeout(() => { if (!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
+                            checkAutoRefill();
+                        });
+                    }
                 }, false);
             } else {
                 selectedBlock.x = selectedBlock.c * CELL_SIZE; selectedBlock = null;
