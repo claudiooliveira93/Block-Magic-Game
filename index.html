@@ -495,7 +495,7 @@
         const arrowPreview = document.getElementById('arrow-preview');
 
         // Configurações
-        const COLORS = { 1: '#ef4444', 2: '#22c55e', 3: '#3b82f6', 4: '#a855f7' };
+        const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#a855f7'];
         const COLS = 8, ROWS = 10;
         let CELL_SIZE = 40;
 
@@ -519,7 +519,9 @@
         let waitingForForceUp = false;
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let masterVolume = 0.5;
+        let savedVol = localStorage.getItem('dropdom_volume');
+        let masterVolume = savedVol !== null ? parseFloat(savedVol) : 0.5;
+        if (volumeSlider) volumeSlider.value = masterVolume * 100;
 
         // --- MÚSICA DE FUNDO E EFEITOS ---
         const bgMusic = new Audio('musica.mp3');
@@ -876,6 +878,7 @@
             masterVolume = e.target.value / 100;
             bgMusic.volume = masterVolume * 0.6;
             somDanger.volume = masterVolume;
+            localStorage.setItem('dropdom_volume', masterVolume);
         });
 
         // Click nas setas de ajuda
@@ -914,7 +917,7 @@
             constructor(c, r, w, isPreview = false) {
                 this.c = c; this.r = r; this.w = w; this.targetR = r;
                 this.x = c * CELL_SIZE; this.y = r * CELL_SIZE;
-                this.color = COLORS[w] || '#fff'; this.isPreview = isPreview;
+                this.color = COLORS[Math.floor(Math.random() * COLORS.length)]; this.isPreview = isPreview;
                 this.isFrozen = false; this.iceHp = 0; this.hasChest = false;
                 this.isGray = false;
             }
@@ -1300,6 +1303,8 @@
             if (isGameOverSequence) return;
             gameActive = false; isGameOverSequence = true;
             toggleStuckUI(false);
+            somDanger.pause();
+            somDanger.currentTime = 0;
             overlay.classList.remove('hidden'); overlay.style.opacity = '1';
             finalScoreEl.textContent = score; finalBestEl.textContent = bestScore;
         }
@@ -1426,8 +1431,27 @@
                 if (selectedBlock) {
                     const idealC = Math.round(selectedBlock.x / CELL_SIZE);
                     ctx.save();
-                    ctx.globalAlpha = 0.15; ctx.strokeStyle = selectedBlock.color; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
-                    ctx.strokeRect(originalC * CELL_SIZE + 4, selectedBlock.targetR * CELL_SIZE + 4, (selectedBlock.w * CELL_SIZE) - 8, CELL_SIZE - 8);
+                    ctx.globalAlpha = 0.1;
+                    const gap = 3, r = 8;
+                    const origX = originalC * CELL_SIZE;
+                    const origY = selectedBlock.targetR * CELL_SIZE;
+                    ctx.fillStyle = selectedBlock.isGray ? '#475569' : selectedBlock.color;
+                    ctx.shadowColor = selectedBlock.isGray ? 'transparent' : selectedBlock.color;
+                    ctx.shadowBlur = selectedBlock.isGray ? 0 : 8;
+                    selectedBlock.roundRect(origX + gap, origY + gap, (selectedBlock.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r);
+                    ctx.fill();
+                    if (!selectedBlock.isGray) {
+                        ctx.fillStyle = `rgba(255,255,255,0.1)`;
+                        ctx.fillRect(origX + gap + 4, origY + gap + 4, (selectedBlock.w * CELL_SIZE) - gap * 2 - 8, (CELL_SIZE - gap * 2) / 2 - 2);
+                    }
+                    if (selectedBlock.hasChest && !selectedBlock.isGray) {
+                        ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🎁', origX + (selectedBlock.w * CELL_SIZE) / 2, origY + CELL_SIZE / 2);
+                    }
+                    if (selectedBlock.isFrozen && !selectedBlock.isGray) {
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#22d3ee"; ctx.fillStyle = 'rgba(165, 243, 252, 0.4)';
+                        selectedBlock.roundRect(origX + gap, origY + gap, (selectedBlock.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r); ctx.fill();
+                        ctx.shadowBlur = 0; ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(`🧊${selectedBlock.iceHp}`, origX + (selectedBlock.w * CELL_SIZE) / 2, origY + CELL_SIZE / 2);
+                    }
                     let dropR = selectedBlock.targetR;
                     while (dropR < ROWS - 1) {
                         const nextR = dropR + 1;
