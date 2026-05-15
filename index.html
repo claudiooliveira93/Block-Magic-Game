@@ -6,9 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Magic Block - Dropdom Master</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800;900&display=swap');
+
+        img.emoji {
+            height: 1em;
+            width: 1em;
+            margin: 0 .05em 0 .1em;
+            vertical-align: -0.1em;
+            display: inline-block;
+        }
 
         body {
             background-color: #0f172a;
@@ -311,7 +320,7 @@
 
         <div class="hud-panel p-2 flex flex-col items-center gap-1 w-28 relative transition-all duration-300 mx-2 shadow-lg shadow-purple-900/20"
             id="wizard-container">
-            <div class="text-3xl filter drop-shadow-[0_0_10px_rgba(147,51,234,0.6)] transform hover:scale-110 transition-transform cursor-help"
+            <div class="text-3xl filter drop-shadow-[0_0_10px_rgba(147,51,234,0.6)] transform hover:scale-110 transition-transform cursor-help wizard-emoji"
                 title="Feiticeiro">🧙‍♂️</div>
             <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-600 relative">
                 <div id="wizard-bar"
@@ -390,7 +399,7 @@
             <div class="flex items-center gap-2">
                 <div
                     class="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-[10px] border border-blue-500/50">
-                    ★</div>
+                    ⭐</div>
                 <span class="text-[10px] uppercase opacity-70 leading-none tracking-wide text-blue-200">Pontuação
                     Atual</span>
             </div>
@@ -486,6 +495,25 @@
         const clockContainerEl = document.getElementById('clock-container');
         const clockTimerEl = document.getElementById('clock-timer');
 
+        // Emoji Images for Canvas
+        const emojiImages = {};
+        const EMOJI_LIST = { chest: '🎁', ice: '🧊' };
+
+        function loadEmojiImages() {
+            for (const [key, emoji] of Object.entries(EMOJI_LIST)) {
+                const img = new Image();
+                // Get unicode sequence for the emoji
+                const codePoints = [];
+                for (const char of emoji) {
+                    codePoints.push(char.codePointAt(0).toString(16));
+                }
+                const unicode = codePoints.join('-');
+                img.src = `https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/${unicode}.png`;
+                emojiImages[key] = img;
+            }
+        }
+        loadEmojiImages();
+
         // Variáveis DOM Inventário
         const inventoryToggleBtn = document.getElementById('inventory-toggle');
         const inventoryMenuEl = document.getElementById('inventory-menu');
@@ -577,6 +605,7 @@
 
         function showToast(msg, type = 'info') {
             toastMsg.innerHTML = type === 'error' ? `<i class="fas fa-exclamation-circle text-red-500 mr-1"></i>${msg}` : msg;
+            twemoji.parse(toastMsg);
             toastEl.style.opacity = '1';
             setTimeout(() => toastEl.style.opacity = '0', 2000);
         }
@@ -592,6 +621,7 @@
             el.className = 'floating-text';
             el.style.left = `${x}px`; el.style.top = `${y}px`; el.style.color = color;
             el.innerHTML = content;
+            twemoji.parse(el);
             gameWrapperEl.appendChild(el);
             setTimeout(() => el.remove(), 1200);
         }
@@ -600,7 +630,7 @@
             inventoryContainer.innerHTML = '';
             let total = 0;
             const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo', dragon: 'Dragão', glove: 'Luva', marreta: 'Espada', relogio: 'Relógio' };
-            const icons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉', glove: '🧤', marreta: '🗡️', relogio: '⏰' };
+            const icons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉', glove: '💪', marreta: '🗡️', relogio: '⏰' };
 
             for (let [key, count] of Object.entries(inventory)) {
                 if (key === 'shield') continue;
@@ -611,6 +641,7 @@
                 btn.innerHTML = `<span class="text-2xl drop-shadow-md mb-1">${icons[key]}</span>
                                  <span class="text-[10px] font-bold bg-slate-900 border border-slate-600 px-2 py-0.5 rounded-md">${count}</span>
                                  <div class="item-tooltip">${names[key]}</div>`;
+                twemoji.parse(btn);
                 inventoryContainer.appendChild(btn);
             }
 
@@ -825,7 +856,7 @@
                     applyRandomItem(x, y, 'shield');
                 } else {
                     inventory[itemKey]++;
-                    const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉', glove: '🧤', marreta: '🗡️', relogio: '⏰' };
+                    const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉', glove: '💪', marreta: '🗡️', relogio: '⏰' };
                     showToast(`+1 ${itemIcons[itemKey]} Guardado!`, 'info');
                     createFloatingText(x, y, `+1 ${itemIcons[itemKey]}`, "#facc15");
                     updateInventoryUI();
@@ -1076,12 +1107,29 @@
 
                 // Gelo e Baú só aparecem se não for prévia
                 if (this.hasChest && !this.isGray && !this.isPreview) {
-                    ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🎁', this.x + (this.w * CELL_SIZE) / 2, this.y + CELL_SIZE / 2);
+                    if (emojiImages.chest && emojiImages.chest.complete) {
+                        const size = 24;
+                        ctx.drawImage(emojiImages.chest, this.x + (this.w * CELL_SIZE) / 2 - size / 2, this.y + CELL_SIZE / 2 - size / 2, size, size);
+                    } else {
+                        ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🎁', this.x + (this.w * CELL_SIZE) / 2, this.y + CELL_SIZE / 2);
+                    }
                 }
                 if (this.isFrozen && !this.isGray && !this.isPreview) {
                     ctx.shadowBlur = 15; ctx.shadowColor = "#22d3ee"; ctx.fillStyle = 'rgba(165, 243, 252, 0.4)';
                     this.roundRect(this.x + gap, this.y + gap, (this.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r); ctx.fill();
-                    ctx.shadowBlur = 0; ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(`🧊${this.iceHp}`, this.x + (this.w * CELL_SIZE) / 2, this.y + CELL_SIZE / 2);
+                    ctx.shadowBlur = 0;
+
+                    if (emojiImages.ice && emojiImages.ice.complete) {
+                        const size = 20;
+                        const totalW = size + 15; // Image + text width estimate
+                        const startX = this.x + (this.w * CELL_SIZE) / 2 - totalW / 2;
+                        ctx.drawImage(emojiImages.ice, startX, this.y + CELL_SIZE / 2 - size / 2, size, size);
+                        ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                        ctx.fillText(this.iceHp, startX + size + 2, this.y + CELL_SIZE / 2);
+                    } else {
+                        ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                        ctx.fillText(`🧊${this.iceHp}`, this.x + (this.w * CELL_SIZE) / 2, this.y + CELL_SIZE / 2);
+                    }
                 }
             }
             roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
@@ -1111,6 +1159,7 @@
             loop();
             isRefilling = true;
             pushMultipleRows(6, () => { isRefilling = false; checkStuckState(); });
+            twemoji.parse(document.body);
         }
 
         function generateNextPreview() {
@@ -1588,12 +1637,29 @@
                         ctx.fillRect(origX + gap + 4, origY + gap + 4, (selectedBlock.w * CELL_SIZE) - gap * 2 - 8, (CELL_SIZE - gap * 2) / 2 - 2);
                     }
                     if (selectedBlock.hasChest && !selectedBlock.isGray) {
-                        ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🎁', origX + (selectedBlock.w * CELL_SIZE) / 2, origY + CELL_SIZE / 2);
+                        if (emojiImages.chest && emojiImages.chest.complete) {
+                            const size = 24;
+                            ctx.drawImage(emojiImages.chest, origX + (selectedBlock.w * CELL_SIZE) / 2 - size / 2, origY + CELL_SIZE / 2 - size / 2, size, size);
+                        } else {
+                            ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🎁', origX + (selectedBlock.w * CELL_SIZE) / 2, origY + CELL_SIZE / 2);
+                        }
                     }
                     if (selectedBlock.isFrozen && !selectedBlock.isGray) {
                         ctx.shadowBlur = 15; ctx.shadowColor = "#22d3ee"; ctx.fillStyle = 'rgba(165, 243, 252, 0.4)';
                         selectedBlock.roundRect(origX + gap, origY + gap, (selectedBlock.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r); ctx.fill();
-                        ctx.shadowBlur = 0; ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(`🧊${selectedBlock.iceHp}`, origX + (selectedBlock.w * CELL_SIZE) / 2, origY + CELL_SIZE / 2);
+                        ctx.shadowBlur = 0;
+
+                        if (emojiImages.ice && emojiImages.ice.complete) {
+                            const size = 20;
+                            const totalW = size + 15;
+                            const startX = origX + (selectedBlock.w * CELL_SIZE) / 2 - totalW / 2;
+                            ctx.drawImage(emojiImages.ice, startX, origY + CELL_SIZE / 2 - size / 2, size, size);
+                            ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                            ctx.fillText(selectedBlock.iceHp, startX + size + 2, origY + CELL_SIZE / 2);
+                        } else {
+                            ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                            ctx.fillText(`🧊${selectedBlock.iceHp}`, origX + (selectedBlock.w * CELL_SIZE) / 2, origY + CELL_SIZE / 2);
+                        }
                     }
                     let dropR = selectedBlock.targetR;
                     while (dropR < ROWS - 1) {
