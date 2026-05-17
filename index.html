@@ -677,6 +677,8 @@
                 if (currentDangerState === 'alert-red') {
                     somDanger.pause();
                 }
+
+                resetInactivityTimer(); // Limpa o temporizador ao pausar
             } else {
                 // Mudar ícone para Pause
                 if (pauseIcon) pauseIcon.innerHTML = '<i class="fas fa-pause"></i>';
@@ -697,6 +699,28 @@
                 if (currentDangerState === 'alert-red' && musicaIniciada) {
                     somDanger.play().catch(() => { });
                 }
+
+                resetInactivityTimer(); // Reinicia o temporizador ao retomar
+            }
+        }
+
+        function pauseGame() {
+            if (!gameActive || isGameOverSequence || isPaused) return;
+            togglePause();
+        }
+
+        let inactivityTimeoutId = null;
+
+        function resetInactivityTimer() {
+            if (inactivityTimeoutId) {
+                clearTimeout(inactivityTimeoutId);
+                inactivityTimeoutId = null;
+            }
+            if (gameActive && !isPaused && !isGameOverSequence) {
+                inactivityTimeoutId = setTimeout(() => {
+                    pauseGame();
+                    showToast("Pausado por inatividade", "info");
+                }, 30000);
             }
         }
 
@@ -1195,6 +1219,44 @@
             }
         });
 
+        // Pausar ao perder o foco ou ir para segundo plano
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                pauseGame();
+            }
+        });
+
+        window.addEventListener('blur', () => {
+            pauseGame();
+        });
+
+        // Pausar ao clicar fora do tabuleiro
+        const handleOutsideClick = (e) => {
+            if (!gameActive || isGameOverSequence || isPaused) return;
+
+            const gameWrapper = document.getElementById('game-wrapper');
+            const topHud = document.querySelector('.fixed.top-4');
+            const leftHud = document.querySelector('.fixed.top-28.left-4');
+            const clickedPopup = e.target.closest('.popup-menu');
+
+            const clickedWrapper = gameWrapper && gameWrapper.contains(e.target);
+            const clickedTopHud = topHud && topHud.contains(e.target);
+            const clickedLeftHud = leftHud && leftHud.contains(e.target);
+
+            if (!clickedWrapper && !clickedTopHud && !clickedLeftHud && !clickedPopup) {
+                pauseGame();
+            }
+        };
+
+        window.addEventListener('mousedown', handleOutsideClick);
+        window.addEventListener('touchstart', handleOutsideClick);
+
+        // Resetar o temporizador de inatividade em qualquer interação do usuário
+        const activityEvents = ['mousedown', 'mousemove', 'touchstart', 'touchmove', 'keydown', 'click'];
+        activityEvents.forEach(evt => {
+            window.addEventListener(evt, resetInactivityTimer, { passive: true });
+        });
+
         function resizeCanvas() {
             const h = window.innerHeight - 180;
             const w = window.innerWidth - 40;
@@ -1295,6 +1357,7 @@
             clockActive = false; clockTime = 0;
             if (clockContainerEl) clockContainerEl.classList.add('hidden');
             startMatchTimer();
+            resetInactivityTimer();
 
             updateUI(); updateWizardUI(); updateInventoryUI();
             generateNextPreview();
