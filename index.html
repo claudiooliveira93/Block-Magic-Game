@@ -360,6 +360,13 @@
                 </div>
             </div>
         </button>
+
+        <button id="pause-toggle"
+            class="hud-panel p-3 rounded-xl hover:scale-105 transition-all active:scale-95 group border border-emerald-500/30 relative shadow-lg shadow-emerald-900/20">
+            <span id="pause-icon" class="text-2xl filter drop-shadow-md text-emerald-400"><i
+                    class="fas fa-pause"></i></span>
+            <div id="pause-tooltip" class="tooltip">Pausar</div>
+        </button>
     </div>
 
 
@@ -454,6 +461,18 @@
 
         <div id="danger-overlay"
             class="absolute inset-0 pointer-events-none transition-opacity duration-300 z-20 rounded-xl">
+        </div>
+
+        <div id="pause-overlay"
+            class="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center z-50 hidden opacity-0 transition-all duration-300 rounded-xl backdrop-blur-sm pointer-events-auto">
+            <h1
+                class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-emerald-400 to-teal-600 mb-2 tracking-tighter filter drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+                JOGO PAUSADO</h1>
+            <div class="w-full max-w-[150px] h-1 bg-emerald-500/50 rounded-full mb-6"></div>
+            <button id="resume-btn"
+                class="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-900/50 uppercase tracking-widest text-xs flex items-center gap-2">
+                <i class="fas fa-play"></i> Continuar
+            </button>
         </div>
 
         <div id="overlay"
@@ -557,6 +576,7 @@
         let gameActive = false, isProcessingTurn = false, isRefilling = false, comboMultiplier = 0;
         let matchSeconds = 0;
         let matchTimerInterval = null;
+        let isPaused = false;
         let selectedBlock = null, dragStartX = 0, blockStartX = 0, originalC = 0;
         let isGameOverSequence = false;
         let turnCounter = 0;
@@ -608,7 +628,7 @@
             matchSeconds = 0;
             updateTimerDisplay();
             matchTimerInterval = setInterval(() => {
-                if (gameActive && !isGameOverSequence) {
+                if (gameActive && !isGameOverSequence && !isPaused) {
                     matchSeconds++;
                     updateTimerDisplay();
                 }
@@ -626,6 +646,57 @@
             const timerEl = document.getElementById('timer-display');
             if (timerEl) {
                 timerEl.textContent = formatTime(matchSeconds);
+            }
+        }
+
+        function togglePause() {
+            if (!gameActive || isGameOverSequence) return;
+            isPaused = !isPaused;
+
+            const pauseIcon = document.getElementById('pause-icon');
+            const pauseTooltip = document.getElementById('pause-tooltip');
+            const pauseOverlay = document.getElementById('pause-overlay');
+
+            if (isPaused) {
+                // Mudar ícone para Play (continuar)
+                if (pauseIcon) pauseIcon.innerHTML = '<i class="fas fa-play"></i>';
+                if (pauseTooltip) pauseTooltip.textContent = 'Continuar';
+
+                // Mostrar overlay
+                if (pauseOverlay) {
+                    pauseOverlay.classList.remove('hidden');
+                    // Trigger reflow for transition
+                    void pauseOverlay.offsetWidth;
+                    pauseOverlay.style.opacity = '1';
+                }
+
+                // Tratar áudio
+                if (musicaIniciada) {
+                    bgMusic.volume = masterVolume * 0.2; // Reduz a música
+                }
+                if (currentDangerState === 'alert-red') {
+                    somDanger.pause();
+                }
+            } else {
+                // Mudar ícone para Pause
+                if (pauseIcon) pauseIcon.innerHTML = '<i class="fas fa-pause"></i>';
+                if (pauseTooltip) pauseTooltip.textContent = 'Pausar';
+
+                // Esconder overlay
+                if (pauseOverlay) {
+                    pauseOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        if (!isPaused) pauseOverlay.classList.add('hidden');
+                    }, 300);
+                }
+
+                // Tratar áudio
+                if (musicaIniciada) {
+                    bgMusic.volume = masterVolume * 0.6; // Restaura a música
+                }
+                if (currentDangerState === 'alert-red' && musicaIniciada) {
+                    somDanger.play().catch(() => { });
+                }
             }
         }
 
@@ -750,6 +821,7 @@
                     clockTimerEl.textContent = `${clockTime}s`;
 
                     clockInterval = setInterval(() => {
+                        if (isPaused) return;
                         clockTime--;
                         if (clockTime > 0) {
                             clockTimerEl.textContent = `${clockTime}s`;
@@ -938,6 +1010,7 @@
                     updateWizardUI();
                     if (shieldInterval) clearInterval(shieldInterval);
                     shieldInterval = setInterval(() => {
+                        if (isPaused) return;
                         wizardShieldTime--;
                         wizardTimerEl.textContent = `${wizardShieldTime}s`;
                         if (wizardShieldTime <= 0) {
@@ -954,6 +1027,7 @@
                     clockContainerEl.classList.remove('hidden');
                     clockTimerEl.textContent = `${clockTime}s`;
                     clockInterval = setInterval(() => {
+                        if (isPaused) return;
                         clockTime--;
                         if (clockTime > 0) { clockTimerEl.textContent = `${clockTime}s`; }
                         else { handleClockEnd(); }
@@ -1057,7 +1131,7 @@
         // --- CONTROLES ---
         inventoryToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (isProcessingTurn || isRefilling || activeTool) return;
+            if (isProcessingTurn || isRefilling || activeTool || isPaused) return;
             volumePopup.classList.add('hidden-menu');
             inventoryMenuEl.classList.toggle('hidden-menu');
         });
@@ -1075,7 +1149,7 @@
 
         volumeSlider.addEventListener('input', (e) => {
             masterVolume = e.target.value / 100;
-            bgMusic.volume = masterVolume * 0.6;
+            bgMusic.volume = isPaused ? masterVolume * 0.2 : masterVolume * 0.6;
             somDanger.volume = masterVolume;
             somCoin.volume = masterVolume;
             somBau.volume = masterVolume;
@@ -1085,7 +1159,17 @@
 
         document.getElementById('stop-clock-btn').addEventListener('click', (e) => {
             e.stopPropagation();
-            if (clockActive) handleClockEnd();
+            if (clockActive && !isPaused) handleClockEnd();
+        });
+
+        document.getElementById('pause-toggle').addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePause();
+        });
+
+        document.getElementById('resume-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePause();
         });
 
         // Click nas setas de ajuda
@@ -1192,6 +1276,17 @@
             isGameOverSequence = false; wizardShieldActive = false; turnCounter = 0;
             isProcessingTurn = false; isRefilling = false; selectedBlock = null;
             hasGameStarted = true; isStuckMode = false;
+
+            isPaused = false;
+            const pauseIcon = document.getElementById('pause-icon');
+            const pauseTooltip = document.getElementById('pause-tooltip');
+            const pauseOverlay = document.getElementById('pause-overlay');
+            if (pauseIcon) pauseIcon.innerHTML = '<i class="fas fa-pause"></i>';
+            if (pauseTooltip) pauseTooltip.textContent = 'Pausar';
+            if (pauseOverlay) {
+                pauseOverlay.style.opacity = '0';
+                pauseOverlay.classList.add('hidden');
+            }
 
             if (shieldInterval) clearInterval(shieldInterval);
             bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
@@ -1568,7 +1663,7 @@
         window.addEventListener('mouseup', handleEnd); window.addEventListener('touchend', handleEnd);
 
         function handleStart(e) {
-            if (!gameActive || isProcessingTurn || isRefilling) return;
+            if (!gameActive || isProcessingTurn || isRefilling || isPaused) return;
             const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left, y = e.clientY - rect.top;
 
             const c = Math.floor(x / CELL_SIZE), r = Math.floor(y / CELL_SIZE);
@@ -1598,7 +1693,7 @@
         }
 
         function handleMove(e) {
-            if (!selectedBlock) return;
+            if (!selectedBlock || isPaused) return;
             const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left;
             const diff = x - dragStartX; let newX = blockStartX + diff;
             const boardMaxX = (COLS - selectedBlock.w) * CELL_SIZE;
@@ -1613,7 +1708,7 @@
         }
 
         function handleEnd() {
-            if (!selectedBlock) return;
+            if (!selectedBlock || isPaused) return;
             const idealC = Math.round(selectedBlock.x / CELL_SIZE);
             const collision = blocks.some(b => {
                 if (b === selectedBlock || b.targetR !== selectedBlock.targetR) return false;
@@ -1662,7 +1757,9 @@
 
         function loop() {
             if (gameActive) {
-                updateWarningUI();
+                if (!isPaused) {
+                    updateWarningUI();
+                }
                 // Estilo Original
                 ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1729,7 +1826,10 @@
                 blocks.forEach(b => b.draw());
                 nextRowBlocks.forEach(b => { ctx.save(); ctx.globalAlpha = 0.4; const py = (ROWS * CELL_SIZE) + 5 - (b.targetR * CELL_SIZE); b.draw(py); ctx.restore(); });
                 for (let i = particles.length - 1; i >= 0; i--) {
-                    let p = particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                    let p = particles[i];
+                    if (!isPaused) {
+                        p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                    }
                     ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4);
                     if (p.life <= 0) particles.splice(i, 1);
                 }
