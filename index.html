@@ -418,6 +418,18 @@
             <p id="best-display"
                 class="text-2xl font-bold text-white leading-none text-right font-mono tracking-tighter">0</p>
         </div>
+
+        <div
+            class="hud-panel px-4 py-2 flex flex-col gap-1 w-44 border-l-4 border-emerald-500 shadow-lg shadow-emerald-900/10">
+            <div class="flex items-center gap-2">
+                <div
+                    class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-[10px] border border-emerald-500/50">
+                    ⏱️</div>
+                <span class="text-[10px] uppercase opacity-70 leading-none tracking-wide text-emerald-200">Tempo</span>
+            </div>
+            <p id="timer-display"
+                class="text-2xl font-bold text-white leading-none text-right font-mono tracking-tighter">00:00</p>
+        </div>
     </div>
 
     <!-- TABULEIRO -->
@@ -543,6 +555,8 @@
         let wizardCharge = 0, wizardShieldActive = false, wizardShieldTime = 0, shieldInterval = null;
         let clockActive = false, clockTime = 0, clockInterval = null;
         let gameActive = false, isProcessingTurn = false, isRefilling = false, comboMultiplier = 0;
+        let matchSeconds = 0;
+        let matchTimerInterval = null;
         let selectedBlock = null, dragStartX = 0, blockStartX = 0, originalC = 0;
         let isGameOverSequence = false;
         let turnCounter = 0;
@@ -577,6 +591,43 @@
         };
         window.addEventListener('click', iniciarMusica);
         window.addEventListener('touchstart', iniciarMusica);
+
+        // --- CRONÔMETRO DE PARTIDA ---
+        function formatTime(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            if (hrs > 0) {
+                return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function startMatchTimer() {
+            stopMatchTimer();
+            matchSeconds = 0;
+            updateTimerDisplay();
+            matchTimerInterval = setInterval(() => {
+                if (gameActive && !isGameOverSequence) {
+                    matchSeconds++;
+                    updateTimerDisplay();
+                }
+            }, 1000);
+        }
+
+        function stopMatchTimer() {
+            if (matchTimerInterval) {
+                clearInterval(matchTimerInterval);
+                matchTimerInterval = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('timer-display');
+            if (timerEl) {
+                timerEl.textContent = formatTime(matchSeconds);
+            }
+        }
 
         // --- SISTEMA DE ÁUDIO E FUNÇÕES AUXILIARES ---
         function playTone(freq, type, duration, vol = 1) {
@@ -1148,6 +1199,7 @@
             if (clockInterval) clearInterval(clockInterval);
             clockActive = false; clockTime = 0;
             if (clockContainerEl) clockContainerEl.classList.add('hidden');
+            startMatchTimer();
 
             updateUI(); updateWizardUI(); updateInventoryUI();
             generateNextPreview();
@@ -1482,6 +1534,7 @@
         function gameOver() {
             if (isGameOverSequence) return;
             gameActive = false; isGameOverSequence = true;
+            stopMatchTimer();
             toggleStuckUI(false);
             somDanger.pause();
             somDanger.currentTime = 0;
