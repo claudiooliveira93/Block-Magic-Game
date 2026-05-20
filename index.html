@@ -497,1416 +497,1724 @@
                 <i class="fas fa-redo"></i> Jogar Novamente
             </button>
         </div>
-    </div>
 
-    <script>
-        // Variáveis DOM
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const gameWrapperEl = document.getElementById('game-wrapper');
-        const scoreEl = document.getElementById('score-display');
-        const bestEl = document.getElementById('best-display');
-        const finalScoreEl = document.getElementById('final-score');
-        const finalBestEl = document.getElementById('final-best');
-        const overlay = document.getElementById('overlay');
-        const dangerOverlay = document.getElementById('danger-overlay');
-        const restartBtn = document.getElementById('restart-btn');
-        const toastEl = document.getElementById('toast');
-        const toastMsg = document.getElementById('toast-msg');
-        const comboDisplayEl = document.getElementById('combo-display');
-        const volumeToggleBtn = document.getElementById('volume-toggle');
-        const volumePopup = document.getElementById('volume-popup');
-        const volumeSlider = document.getElementById('volume-slider');
-        const wizardBarEl = document.getElementById('wizard-bar');
-        // Board texture for Nano Banana style
-        const boardTexture = new Image();
-        boardTexture.src = 'Tabuleiro.png';
-        const wizardContainerEl = document.getElementById('wizard-container');
-        const wizardTimerEl = document.getElementById('wizard-timer');
-        const clockContainerEl = document.getElementById('clock-container');
-        const clockTimerEl = document.getElementById('clock-timer');
+        <!-- MODAL CONFIRMAÇÃO CONTINUAR PARTIDA -->
+        <div id="load-game-modal"
+            class="fixed inset-0 bg-slate-950/80 flex items-center justify-center z-[200] hidden backdrop-blur-md transition-opacity duration-300 opacity-0">
+            <div
+                class="hud-panel p-8 rounded-2xl border border-blue-500/30 max-w-sm w-full mx-4 flex flex-col items-center gap-6 shadow-2xl relative">
+                <div
+                    class="absolute -top-10 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-full shadow-lg shadow-blue-500/30 border border-blue-400">
+                    <i class="fas fa-gamepad text-2xl animate-bounce"></i>
+                </div>
 
-        // Emoji Images for Canvas
-        const emojiImages = {};
-        const EMOJI_LIST = { chest: '🎁', ice: '🧊' };
+                <div class="text-center mt-6">
+                    <h2
+                        class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 tracking-tighter uppercase mb-2">
+                        Partida Encontrada
+                    </h2>
+                    <p class="text-sm text-slate-400">
+                        Você possui um jogo salvo de uma partida anterior. Deseja continuar ou começar do zero?
+                    </p>
+                </div>
 
-        function loadEmojiImages() {
-            for (const [key, emoji] of Object.entries(EMOJI_LIST)) {
-                const img = new Image();
-                // Get unicode sequence for the emoji
-                const codePoints = [];
-                for (const char of emoji) {
-                    codePoints.push(char.codePointAt(0).toString(16));
+                <!-- Detalhes do Jogo Salvo -->
+                <div
+                    class="w-full bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 flex flex-col gap-2 font-semibold text-sm">
+                    <div class="flex justify-between items-center text-slate-400">
+                        <span>Pontuação:</span>
+                        <span id="saved-score" class="text-white font-mono text-base font-bold">0</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-400">
+                        <span>Tempo de Jogo:</span>
+                        <span id="saved-time" class="text-white font-mono text-base font-bold">00:00</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-400">
+                        <span>Mochila:</span>
+                        <span id="saved-items" class="text-white font-mono text-base font-bold">0 itens</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3 w-full">
+                    <button id="btn-continue-game"
+                        class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-900/50 uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+                        <i class="fas fa-play"></i> Continuar Partida
+                    </button>
+                    <button id="btn-restart-game"
+                        class="w-full py-3.5 bg-slate-800/60 hover:bg-slate-700/80 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700 transition-all hover:scale-[1.02] active:scale-[0.98] uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+                        <i class="fas fa-trash-alt"></i> Recomeçar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Variáveis DOM
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const gameWrapperEl = document.getElementById('game-wrapper');
+            const scoreEl = document.getElementById('score-display');
+            const bestEl = document.getElementById('best-display');
+            const finalScoreEl = document.getElementById('final-score');
+            const finalBestEl = document.getElementById('final-best');
+            const overlay = document.getElementById('overlay');
+            const dangerOverlay = document.getElementById('danger-overlay');
+            const restartBtn = document.getElementById('restart-btn');
+            const toastEl = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const comboDisplayEl = document.getElementById('combo-display');
+            const volumeToggleBtn = document.getElementById('volume-toggle');
+            const volumePopup = document.getElementById('volume-popup');
+            const volumeSlider = document.getElementById('volume-slider');
+            const wizardBarEl = document.getElementById('wizard-bar');
+            // Board texture for Nano Banana style
+            const boardTexture = new Image();
+            boardTexture.src = 'Tabuleiro.png';
+            const wizardContainerEl = document.getElementById('wizard-container');
+            const wizardTimerEl = document.getElementById('wizard-timer');
+            const clockContainerEl = document.getElementById('clock-container');
+            const clockTimerEl = document.getElementById('clock-timer');
+
+            // Emoji Images for Canvas
+            const emojiImages = {};
+            const EMOJI_LIST = { chest: '🎁', ice: '🧊' };
+
+            function loadEmojiImages() {
+                for (const [key, emoji] of Object.entries(EMOJI_LIST)) {
+                    const img = new Image();
+                    // Get unicode sequence for the emoji
+                    const codePoints = [];
+                    for (const char of emoji) {
+                        codePoints.push(char.codePointAt(0).toString(16));
+                    }
+                    const unicode = codePoints.join('-');
+                    img.src = `https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/${unicode}.png`;
+                    emojiImages[key] = img;
                 }
-                const unicode = codePoints.join('-');
-                img.src = `https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/${unicode}.png`;
-                emojiImages[key] = img;
             }
-        }
-        loadEmojiImages();
+            loadEmojiImages();
 
-        // Variáveis DOM Inventário
-        const inventoryToggleBtn = document.getElementById('inventory-toggle');
-        const inventoryMenuEl = document.getElementById('inventory-menu');
-        const totalInventoryCountEl = document.getElementById('total-inventory-count');
-        const inventoryContainer = document.getElementById('inventory-items-container');
-        const itemUsePanel = document.getElementById('item-use-panel');
-        const cancelItemBtn = document.getElementById('cancel-item-btn');
+            // Variáveis DOM Inventário
+            const inventoryToggleBtn = document.getElementById('inventory-toggle');
+            const inventoryMenuEl = document.getElementById('inventory-menu');
+            const totalInventoryCountEl = document.getElementById('total-inventory-count');
+            const inventoryContainer = document.getElementById('inventory-items-container');
+            const itemUsePanel = document.getElementById('item-use-panel');
+            const cancelItemBtn = document.getElementById('cancel-item-btn');
 
-        // Elementos de Decisão (Stuck State)
-        const choiceMessage = document.getElementById('choice-message');
-        const arrowPreview = document.getElementById('arrow-preview');
+            // Elementos de Decisão (Stuck State)
+            const choiceMessage = document.getElementById('choice-message');
+            const arrowPreview = document.getElementById('arrow-preview');
 
-        // Configurações
-        const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#a855f7'];
-        const COLS = 8, ROWS = 10;
-        let CELL_SIZE = 40;
+            // Configurações
+            const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#a855f7'];
+            const COLS = 8, ROWS = 10;
+            let CELL_SIZE = 40;
 
-        // Estado
-        let blocks = [], nextRowBlocks = [], particles = [];
-        let score = 0, bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
-        const WIZARD_MAX = 100, WIZARD_STEP = 20;
+            // Estado
+            let blocks = [], nextRowBlocks = [], particles = [];
+            let score = 0, bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
+            const WIZARD_MAX = 100, WIZARD_STEP = 20;
 
-        let activeTool = null;
-        let inventory = { hammer: 0, tractor: 0, lightning: 0, fire: 0, superfire: 0, dragon: 0, glove: 0, marreta: 0, relogio: 0 };
+            let activeTool = null;
+            let inventory = { hammer: 0, tractor: 0, lightning: 0, fire: 0, superfire: 0, dragon: 0, glove: 0, marreta: 0, relogio: 0 };
 
-        let comboHideTimer = null;
-        let wizardCharge = 0, wizardShieldActive = false, wizardShieldTime = 0, shieldInterval = null;
-        let clockActive = false, clockTime = 0, clockInterval = null;
-        let gameActive = false, isProcessingTurn = false, isRefilling = false, comboMultiplier = 0;
-        let matchSeconds = 0;
-        let matchTimerInterval = null;
-        let isPaused = false;
-        let selectedBlock = null, dragStartX = 0, blockStartX = 0, originalC = 0;
-        let isGameOverSequence = false;
-        let turnCounter = 0;
-        let animationFrameId = null;
-        let isStuckMode = false;
-        let turnLinesCleared = 0;
-        let waitingForForceUp = false;
+            let comboHideTimer = null;
+            let wizardCharge = 0, wizardShieldActive = false, wizardShieldTime = 0, shieldInterval = null;
+            let clockActive = false, clockTime = 0, clockInterval = null;
+            let gameActive = false, isProcessingTurn = false, isRefilling = false, comboMultiplier = 0;
+            let matchSeconds = 0;
+            let matchTimerInterval = null;
+            let isPaused = false;
+            let selectedBlock = null, dragStartX = 0, blockStartX = 0, originalC = 0;
+            let isGameOverSequence = false;
+            let turnCounter = 0;
+            let animationFrameId = null;
+            let isStuckMode = false;
+            let turnLinesCleared = 0;
+            let waitingForForceUp = false;
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let savedVol = localStorage.getItem('dropdom_volume');
-        let masterVolume = savedVol !== null ? parseFloat(savedVol) : 0.5;
-        if (volumeSlider) volumeSlider.value = masterVolume * 100;
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let savedVol = localStorage.getItem('dropdom_volume');
+            let masterVolume = savedVol !== null ? parseFloat(savedVol) : 0.5;
+            if (volumeSlider) volumeSlider.value = masterVolume * 100;
 
-        // --- MÚSICA DE FUNDO E EFEITOS ---
-        const bgMusic = new Audio('musica.mp3');
-        bgMusic.loop = true;
-        bgMusic.volume = masterVolume * 0.6;
-        let musicaIniciada = false;
-        const somDanger = new Audio('Danger.mp3');
-        somDanger.loop = true;
-        const somCoin = new Audio('Coin.mp3');
-        const somBau = new Audio('Bau.mp3');
-        const somGameOver = new Audio('Game Over.mp3');
+            // --- MÚSICA DE FUNDO E EFEITOS ---
+            const bgMusic = new Audio('musica.mp3');
+            bgMusic.loop = true;
+            bgMusic.volume = masterVolume * 0.6;
+            let musicaIniciada = false;
+            const somDanger = new Audio('Danger.mp3');
+            somDanger.loop = true;
+            const somCoin = new Audio('Coin.mp3');
+            const somBau = new Audio('Bau.mp3');
+            const somGameOver = new Audio('Game Over.mp3');
 
-        const iniciarMusica = () => {
-            if (!musicaIniciada) {
-                bgMusic.play().catch(() => console.log("Aguardando interação para áudio"));
-                musicaIniciada = true;
-                window.removeEventListener('click', iniciarMusica);
-                window.removeEventListener('touchstart', iniciarMusica);
-            }
-        };
-        window.addEventListener('click', iniciarMusica);
-        window.addEventListener('touchstart', iniciarMusica);
-
-        // --- CRONÔMETRO DE PARTIDA ---
-        function formatTime(seconds) {
-            const hrs = Math.floor(seconds / 3600);
-            const mins = Math.floor((seconds % 3600) / 60);
-            const secs = seconds % 60;
-            if (hrs > 0) {
-                return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-            }
-            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }
-
-        function startMatchTimer() {
-            stopMatchTimer();
-            matchSeconds = 0;
-            updateTimerDisplay();
-            matchTimerInterval = setInterval(() => {
-                if (gameActive && !isGameOverSequence && !isPaused) {
-                    matchSeconds++;
-                    updateTimerDisplay();
+            const iniciarMusica = () => {
+                if (!musicaIniciada) {
+                    bgMusic.play().catch(() => console.log("Aguardando interação para áudio"));
+                    musicaIniciada = true;
+                    window.removeEventListener('click', iniciarMusica);
+                    window.removeEventListener('touchstart', iniciarMusica);
                 }
-            }, 1000);
-        }
+            };
+            window.addEventListener('click', iniciarMusica);
+            window.addEventListener('touchstart', iniciarMusica);
 
-        function stopMatchTimer() {
-            if (matchTimerInterval) {
-                clearInterval(matchTimerInterval);
-                matchTimerInterval = null;
-            }
-        }
-
-        function updateTimerDisplay() {
-            const timerEl = document.getElementById('timer-display');
-            if (timerEl) {
-                timerEl.textContent = formatTime(matchSeconds);
-            }
-        }
-
-        function togglePause() {
-            if (!gameActive || isGameOverSequence) return;
-            isPaused = !isPaused;
-
-            const pauseIcon = document.getElementById('pause-icon');
-            const pauseTooltip = document.getElementById('pause-tooltip');
-            const pauseOverlay = document.getElementById('pause-overlay');
-
-            if (isPaused) {
-                // Mudar ícone para Play (continuar)
-                if (pauseIcon) pauseIcon.innerHTML = '<i class="fas fa-play"></i>';
-                if (pauseTooltip) pauseTooltip.textContent = 'Continuar';
-
-                // Mostrar overlay
-                if (pauseOverlay) {
-                    pauseOverlay.classList.remove('hidden');
-                    // Trigger reflow for transition
-                    void pauseOverlay.offsetWidth;
-                    pauseOverlay.style.opacity = '1';
+            // --- CRONÔMETRO DE PARTIDA ---
+            function formatTime(seconds) {
+                const hrs = Math.floor(seconds / 3600);
+                const mins = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                if (hrs > 0) {
+                    return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
                 }
-
-                // Tratar áudio
-                if (musicaIniciada) {
-                    bgMusic.volume = masterVolume * 0.2; // Reduz a música
-                }
-                if (currentDangerState === 'alert-red') {
-                    somDanger.pause();
-                }
-
-                resetInactivityTimer(); // Limpa o temporizador ao pausar
-            } else {
-                // Mudar ícone para Pause
-                if (pauseIcon) pauseIcon.innerHTML = '<i class="fas fa-pause"></i>';
-                if (pauseTooltip) pauseTooltip.textContent = 'Pausar';
-
-                // Esconder overlay
-                if (pauseOverlay) {
-                    pauseOverlay.style.opacity = '0';
-                    setTimeout(() => {
-                        if (!isPaused) pauseOverlay.classList.add('hidden');
-                    }, 300);
-                }
-
-                // Tratar áudio
-                if (musicaIniciada) {
-                    bgMusic.volume = masterVolume * 0.6; // Restaura a música
-                }
-                if (currentDangerState === 'alert-red' && musicaIniciada) {
-                    somDanger.play().catch(() => { });
-                }
-
-                resetInactivityTimer(); // Reinicia o temporizador ao retomar
+                return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
             }
-        }
 
-        function pauseGame() {
-            if (!gameActive || isGameOverSequence || isPaused) return;
-            togglePause();
-        }
-
-        let inactivityTimeoutId = null;
-
-        function resetInactivityTimer() {
-            if (inactivityTimeoutId) {
-                clearTimeout(inactivityTimeoutId);
-                inactivityTimeoutId = null;
+            function startMatchTimer() {
+                stopMatchTimer();
+                matchSeconds = 0;
+                updateTimerDisplay();
+                matchTimerInterval = setInterval(() => {
+                    if (gameActive && !isGameOverSequence && !isPaused) {
+                        matchSeconds++;
+                        updateTimerDisplay();
+                    }
+                }, 1000);
             }
-            if (gameActive && !isPaused && !isGameOverSequence) {
-                inactivityTimeoutId = setTimeout(() => {
-                    pauseGame();
-                    showToast("Pausado por inatividade", "info");
-                }, 30000);
+
+            function stopMatchTimer() {
+                if (matchTimerInterval) {
+                    clearInterval(matchTimerInterval);
+                    matchTimerInterval = null;
+                }
             }
-        }
 
-        // --- SISTEMA DE ÁUDIO E FUNÇÕES AUXILIARES ---
-        function playTone(freq, type, duration, vol = 1) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (masterVolume <= 0.01) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(vol * masterVolume, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
-        }
-
-        function playMoveSound() { /* Removido a pedido */ }
-        function playFreezeSound() { playTone(600, 'triangle', 0.1, 0.3); playTone(1200, 'sine', 0.3, 0.2); }
-        function playErrorSound() { playTone(150, 'sawtooth', 0.15, 0.4); }
-        function playExplosionSound() {
-            somCoin.currentTime = 0;
-            somCoin.volume = masterVolume;
-            somCoin.play().catch(() => { });
-        }
-
-        function showToast(msg, type = 'info') {
-            toastMsg.innerHTML = type === 'error' ? `<i class="fas fa-exclamation-circle text-red-500 mr-1"></i>${msg}` : msg;
-            twemoji.parse(toastMsg);
-            toastEl.style.opacity = '1';
-            setTimeout(() => toastEl.style.opacity = '0', 2000);
-        }
-
-        function createExplosion(x, y, color) {
-            for (let i = 0; i < 15; i++) {
-                particles.push({ x, y, vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.5) * 12, life: 1.2, color });
+            function updateTimerDisplay() {
+                const timerEl = document.getElementById('timer-display');
+                if (timerEl) {
+                    timerEl.textContent = formatTime(matchSeconds);
+                }
             }
-        }
 
-        function createFloatingText(x, y, content, color) {
-            const el = document.createElement('div');
-            el.className = 'floating-text';
-            el.style.left = `${x}px`; el.style.top = `${y}px`; el.style.color = color;
-            el.innerHTML = content;
-            twemoji.parse(el);
-            gameWrapperEl.appendChild(el);
-            setTimeout(() => el.remove(), 1200);
-        }
+            function togglePause() {
+                if (!gameActive || isGameOverSequence) return;
+                isPaused = !isPaused;
 
-        function updateInventoryUI() {
-            inventoryContainer.innerHTML = '';
-            let total = 0;
-            const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo', dragon: 'Dragão', glove: 'Luva', marreta: 'Espada', relogio: 'Relógio' };
-            const icons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉', glove: '💪', marreta: '🗡️', relogio: '⏰' };
+                const pauseIcon = document.getElementById('pause-icon');
+                const pauseTooltip = document.getElementById('pause-tooltip');
+                const pauseOverlay = document.getElementById('pause-overlay');
 
-            for (let [key, count] of Object.entries(inventory)) {
-                if (key === 'shield') continue;
-                total += count;
-                const btn = document.createElement('button');
-                btn.className = `shop-btn flex flex-col items-center p-2 rounded-xl border border-slate-700 bg-slate-800 ${count > 0 ? 'hover:bg-slate-700 cursor-pointer' : 'btn-disabled'} ${activeTool === key ? 'active-tool' : ''} group w-[65px]`;
-                btn.onclick = (e) => { e.stopPropagation(); if (count > 0) selectTool(key); };
-                btn.innerHTML = `<span class="text-2xl drop-shadow-md mb-1">${icons[key]}</span>
+                if (isPaused) {
+                    // Mudar ícone para Play (continuar)
+                    if (pauseIcon) pauseIcon.innerHTML = '<i class="fas fa-play"></i>';
+                    if (pauseTooltip) pauseTooltip.textContent = 'Continuar';
+
+                    // Mostrar overlay
+                    if (pauseOverlay) {
+                        pauseOverlay.classList.remove('hidden');
+                        // Trigger reflow for transition
+                        void pauseOverlay.offsetWidth;
+                        pauseOverlay.style.opacity = '1';
+                    }
+
+                    // Tratar áudio
+                    if (musicaIniciada) {
+                        bgMusic.volume = masterVolume * 0.2; // Reduz a música
+                    }
+                    if (currentDangerState === 'alert-red') {
+                        somDanger.pause();
+                    }
+
+                    resetInactivityTimer(); // Limpa o temporizador ao pausar
+                } else {
+                    // Mudar ícone para Pause
+                    if (pauseIcon) pauseIcon.innerHTML = '<i class="fas fa-pause"></i>';
+                    if (pauseTooltip) pauseTooltip.textContent = 'Pausar';
+
+                    // Esconder overlay
+                    if (pauseOverlay) {
+                        pauseOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            if (!isPaused) pauseOverlay.classList.add('hidden');
+                        }, 300);
+                    }
+
+                    // Tratar áudio
+                    if (musicaIniciada) {
+                        bgMusic.volume = masterVolume * 0.6; // Restaura a música
+                    }
+                    if (currentDangerState === 'alert-red' && musicaIniciada) {
+                        somDanger.play().catch(() => { });
+                    }
+
+                    resetInactivityTimer(); // Reinicia o temporizador ao retomar
+                }
+            }
+
+            function pauseGame() {
+                if (!gameActive || isGameOverSequence || isPaused) return;
+                togglePause();
+            }
+
+            let inactivityTimeoutId = null;
+
+            function resetInactivityTimer() {
+                if (inactivityTimeoutId) {
+                    clearTimeout(inactivityTimeoutId);
+                    inactivityTimeoutId = null;
+                }
+                if (gameActive && !isPaused && !isGameOverSequence) {
+                    inactivityTimeoutId = setTimeout(() => {
+                        pauseGame();
+                        showToast("Pausado por inatividade", "info");
+                    }, 30000);
+                }
+            }
+
+            // --- SISTEMA DE ÁUDIO E FUNÇÕES AUXILIARES ---
+            function playTone(freq, type, duration, vol = 1) {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                if (masterVolume <= 0.01) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol * masterVolume, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            }
+
+            function playMoveSound() { /* Removido a pedido */ }
+            function playFreezeSound() { playTone(600, 'triangle', 0.1, 0.3); playTone(1200, 'sine', 0.3, 0.2); }
+            function playErrorSound() { playTone(150, 'sawtooth', 0.15, 0.4); }
+            function playExplosionSound() {
+                somCoin.currentTime = 0;
+                somCoin.volume = masterVolume;
+                somCoin.play().catch(() => { });
+            }
+
+            function showToast(msg, type = 'info') {
+                toastMsg.innerHTML = type === 'error' ? `<i class="fas fa-exclamation-circle text-red-500 mr-1"></i>${msg}` : msg;
+                twemoji.parse(toastMsg);
+                toastEl.style.opacity = '1';
+                setTimeout(() => toastEl.style.opacity = '0', 2000);
+            }
+
+            function createExplosion(x, y, color) {
+                for (let i = 0; i < 15; i++) {
+                    particles.push({ x, y, vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.5) * 12, life: 1.2, color });
+                }
+            }
+
+            function createFloatingText(x, y, content, color) {
+                const el = document.createElement('div');
+                el.className = 'floating-text';
+                el.style.left = `${x}px`; el.style.top = `${y}px`; el.style.color = color;
+                el.innerHTML = content;
+                twemoji.parse(el);
+                gameWrapperEl.appendChild(el);
+                setTimeout(() => el.remove(), 1200);
+            }
+
+            function updateInventoryUI() {
+                inventoryContainer.innerHTML = '';
+                let total = 0;
+                const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo', dragon: 'Dragão', glove: 'Luva', marreta: 'Espada', relogio: 'Relógio' };
+                const icons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉', glove: '💪', marreta: '🗡️', relogio: '⏰' };
+
+                for (let [key, count] of Object.entries(inventory)) {
+                    if (key === 'shield') continue;
+                    total += count;
+                    const btn = document.createElement('button');
+                    btn.className = `shop-btn flex flex-col items-center p-2 rounded-xl border border-slate-700 bg-slate-800 ${count > 0 ? 'hover:bg-slate-700 cursor-pointer' : 'btn-disabled'} ${activeTool === key ? 'active-tool' : ''} group w-[65px]`;
+                    btn.onclick = (e) => { e.stopPropagation(); if (count > 0) selectTool(key); };
+                    btn.innerHTML = `<span class="text-2xl drop-shadow-md mb-1">${icons[key]}</span>
                                  <span class="text-[10px] font-bold bg-slate-900 border border-slate-600 px-2 py-0.5 rounded-md">${count}</span>
                                  <div class="item-tooltip">${names[key]}</div>`;
-                twemoji.parse(btn);
-                inventoryContainer.appendChild(btn);
-            }
-
-            if (total > 0) {
-                totalInventoryCountEl.textContent = total;
-                totalInventoryCountEl.classList.remove('hidden');
-            } else {
-                totalInventoryCountEl.classList.add('hidden');
-            }
-        }
-
-        function handleClockEnd() {
-            clockActive = false;
-            clearInterval(clockInterval);
-            clockContainerEl.classList.add('hidden');
-            showToast("O tempo voltou a correr!", "info");
-
-            if (isProcessingTurn || isRefilling) return;
-
-            const activeRowIndices = new Set(blocks.map(b => b.targetR));
-            const maxRowIndex = blocks.length > 0 ? Math.min(...activeRowIndices) : ROWS;
-
-            if (maxRowIndex >= ROWS - 3) {
-                const rowsToAdd = maxRowIndex - (ROWS - 5);
-                if (rowsToAdd > 0) {
-                    isRefilling = true;
-                    isProcessingTurn = true;
-                    pushMultipleRows(rowsToAdd, () => {
-                        isRefilling = false;
-                        isProcessingTurn = false;
-                        setTimeout(() => { comboDisplayEl.style.opacity = "0"; }, 1500);
-                        checkStuckState();
-                    });
+                    twemoji.parse(btn);
+                    inventoryContainer.appendChild(btn);
                 }
-            } else {
-                checkStuckState();
+
+                if (total > 0) {
+                    totalInventoryCountEl.textContent = total;
+                    totalInventoryCountEl.classList.remove('hidden');
+                } else {
+                    totalInventoryCountEl.classList.add('hidden');
+                }
             }
-        }
 
-        function selectTool(key) {
-            if (inventory[key] <= 0) return;
+            function handleClockEnd() {
+                clockActive = false;
+                clearInterval(clockInterval);
+                clockContainerEl.classList.add('hidden');
+                showToast("O tempo voltou a correr!", "info");
 
-            if (key === 'relogio') {
+                if (isProcessingTurn || isRefilling) return;
+
+                const activeRowIndices = new Set(blocks.map(b => b.targetR));
+                const maxRowIndex = blocks.length > 0 ? Math.min(...activeRowIndices) : ROWS;
+
+                if (maxRowIndex >= ROWS - 3) {
+                    const rowsToAdd = maxRowIndex - (ROWS - 5);
+                    if (rowsToAdd > 0) {
+                        isRefilling = true;
+                        isProcessingTurn = true;
+                        pushMultipleRows(rowsToAdd, () => {
+                            isRefilling = false;
+                            isProcessingTurn = false;
+                            setTimeout(() => { comboDisplayEl.style.opacity = "0"; }, 1500);
+                            checkStuckState();
+                        });
+                    }
+                } else {
+                    checkStuckState();
+                }
+            }
+
+            function selectTool(key) {
+                if (inventory[key] <= 0) return;
+
+                if (key === 'relogio') {
+                    inventoryMenuEl.classList.add('hidden-menu');
+                    if (!clockActive) {
+                        clockActive = true;
+                        clockTime = 30;
+                        inventory['relogio']--;
+                        saveData();
+                        updateInventoryUI();
+
+                        if (clockInterval) clearInterval(clockInterval);
+
+                        clockContainerEl.classList.remove('hidden');
+                        clockTimerEl.textContent = `${clockTime}s`;
+
+                        clockInterval = setInterval(() => {
+                            if (isPaused) return;
+                            clockTime--;
+                            if (clockTime > 0) {
+                                clockTimerEl.textContent = `${clockTime}s`;
+                            } else {
+                                handleClockEnd();
+                            }
+                            saveData();
+                        }, 1000);
+
+                        showToast("Tempo Parado por 30s!");
+                    } else {
+                        showToast("Relógio já está ativo!", "error");
+                        playErrorSound();
+                    }
+                    return;
+                }
+
+                if (key === 'dragon') {
+                    inventoryMenuEl.classList.add('hidden-menu');
+                    const frozen = blocks.filter(b => b.isFrozen);
+                    if (frozen.length > 0) {
+                        blocks.forEach(b => { b.isFrozen = false; b.iceHp = 0; });
+                        inventory['dragon']--;
+                        saveData();
+                        updateInventoryUI();
+                        playExplosionSound();
+                        createExplosion(canvas.width / 2, canvas.height / 2, '#fff');
+                        showToast("Dragão: Gelo derretido!");
+                        isProcessingTurn = true;
+                        setTimeout(() => { checkGravity(() => { isProcessingTurn = false; checkStuckState(); }, true); }, 100);
+                    } else {
+                        showToast("Nenhum gelo no campo!", "error");
+                        playErrorSound();
+                    }
+                    return;
+                }
+
+                activeTool = key;
+                updateInventoryUI();
                 inventoryMenuEl.classList.add('hidden-menu');
-                if (!clockActive) {
-                    clockActive = true;
-                    clockTime = 30;
-                    inventory['relogio']--;
-                    saveData();
-                    updateInventoryUI();
+                itemUsePanel.classList.remove('hidden');
 
-                    if (clockInterval) clearInterval(clockInterval);
-
-                    clockContainerEl.classList.remove('hidden');
-                    clockTimerEl.textContent = `${clockTime}s`;
-
-                    clockInterval = setInterval(() => {
-                        if (isPaused) return;
-                        clockTime--;
-                        if (clockTime > 0) {
-                            clockTimerEl.textContent = `${clockTime}s`;
-                        } else {
-                            handleClockEnd();
-                        }
-                    }, 1000);
-
-                    showToast("Tempo Parado por 30s!");
-                } else {
-                    showToast("Relógio já está ativo!", "error");
-                    playErrorSound();
-                }
-                return;
+                const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo', dragon: 'Dragão', marreta: 'Espada', relogio: 'Relógio' };
+                const msg = document.getElementById('item-use-msg');
+                msg.textContent = `Aponte o ${names[key]}!`;
+                gameWrapperEl.style.cursor = 'crosshair';
             }
 
-            if (key === 'dragon') {
-                inventoryMenuEl.classList.add('hidden-menu');
-                const frozen = blocks.filter(b => b.isFrozen);
-                if (frozen.length > 0) {
-                    blocks.forEach(b => { b.isFrozen = false; b.iceHp = 0; });
-                    inventory['dragon']--;
-                    saveData();
-                    updateInventoryUI();
-                    playExplosionSound();
-                    createExplosion(canvas.width / 2, canvas.height / 2, '#fff');
-                    showToast("Dragão: Gelo derretido!");
-                    isProcessingTurn = true;
-                    setTimeout(() => { checkGravity(() => { isProcessingTurn = false; checkStuckState(); }, true); }, 100);
-                } else {
-                    showToast("Nenhum gelo no campo!", "error");
-                    playErrorSound();
-                }
-                return;
+            function cancelTool() {
+                activeTool = null;
+                itemUsePanel.classList.add('hidden');
+                gameWrapperEl.style.cursor = 'pointer';
+                updateInventoryUI();
             }
 
-            activeTool = key;
-            updateInventoryUI();
-            inventoryMenuEl.classList.add('hidden-menu');
-            itemUsePanel.classList.remove('hidden');
+            function handleTool(r, c) {
+                if (!activeTool || inventory[activeTool] <= 0 || isProcessingTurn || isRefilling) return;
+                let used = false;
+                let targetX = c * CELL_SIZE + CELL_SIZE / 2;
+                let targetY = r * CELL_SIZE + CELL_SIZE / 2;
 
-            const names = { hammer: 'Martelo', tractor: 'Trator', lightning: 'Raio', fire: 'Fogo', superfire: 'Super Fogo', dragon: 'Dragão', marreta: 'Espada', relogio: 'Relógio' };
-            const msg = document.getElementById('item-use-msg');
-            msg.textContent = `Aponte o ${names[key]}!`;
-            gameWrapperEl.style.cursor = 'crosshair';
-        }
-
-        function cancelTool() {
-            activeTool = null;
-            itemUsePanel.classList.add('hidden');
-            gameWrapperEl.style.cursor = 'pointer';
-            updateInventoryUI();
-        }
-
-        function handleTool(r, c) {
-            if (!activeTool || inventory[activeTool] <= 0 || isProcessingTurn || isRefilling) return;
-            let used = false;
-            let targetX = c * CELL_SIZE + CELL_SIZE / 2;
-            let targetY = r * CELL_SIZE + CELL_SIZE / 2;
-
-            if (activeTool === 'hammer') {
-                const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
-                if (b && b.w > 1) {
-                    b.w--; used = true;
-                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
-                }
-            } else if (activeTool === 'marreta') {
-                const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
-                if (b && b.w > 1) {
-                    let w1 = Math.floor(b.w / 2);
-                    let w2 = Math.ceil(b.w / 2);
-                    b.w = w1;
-                    const newB = new Block(b.c + w1, b.r, w2, false);
-                    newB.targetR = b.targetR;
-                    newB.y = b.y;
-                    newB.isFrozen = b.isFrozen;
-                    newB.iceHp = b.iceHp;
-                    blocks.push(newB);
-                    used = true;
-                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
-                }
-            } else if (activeTool === 'lightning') {
-                const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
-                if (b && !b.isFrozen) {
-                    const surround = blocks.filter(item => {
-                        if (item.isFrozen) return false;
-                        if (item === b) return true;
-                        if (item.targetR === b.targetR && (item.c + item.w === b.c || item.c === b.c + b.w)) return true;
-                        if (Math.abs(item.targetR - b.targetR) === 1 && item.c < b.c + b.w && item.c + item.w > b.c) return true;
-                        return false;
-                    });
-                    blocks = blocks.filter(item => !surround.includes(item));
-                    used = true;
-                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
-                }
-            } else if (activeTool === 'tractor') {
-                const targets = blocks.filter(b => b.targetR === r && !b.isFrozen);
-                if (targets.length > 0) {
-                    blocks = blocks.filter(item => {
-                        if (item.targetR === r && !item.isFrozen) return false;
-                        return true;
-                    });
-                    used = true;
-                    targetX = canvas.width / 2; targetY = r * CELL_SIZE + CELL_SIZE / 2;
-                }
-            } else if (activeTool === 'fire') {
-                const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
-                if (b && b.isFrozen) {
-                    b.iceHp--; if (b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; }
-                    used = true;
-                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
-                }
-            } else if (activeTool === 'superfire') {
-                const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
-                if (b && b.isFrozen) {
-                    const surround = blocks.filter(item => {
-                        if (!item.isFrozen) return false;
-                        if (item === b) return true;
-                        if (item.targetR === b.targetR && (item.c + item.w === b.c || item.c === b.c + b.w)) return true;
-                        if (Math.abs(item.targetR - b.targetR) === 1 && item.c < b.c + b.w && item.c + item.w > b.c) return true;
-                        return false;
-                    });
-                    surround.forEach(item => {
-                        item.iceHp--; if (item.iceHp <= 0) { item.isFrozen = false; item.iceHp = 0; }
-                    });
-                    used = true;
-                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
-                }
-            }
-
-            if (used) {
-                inventory[activeTool]--;
-                saveData();
-                playExplosionSound();
-                createExplosion(targetX, targetY, '#fff');
-                cancelTool();
-                isProcessingTurn = true;
-                setTimeout(() => { checkGravity(() => { isProcessingTurn = false; checkStuckState(); }, true); }, 100);
-            } else {
-                showToast("Alvo Inválido!", "error");
-                playErrorSound();
-            }
-        }
-
-        function giveChestReward(x, y) {
-            const rand = Math.random();
-            if (rand < 0.7) {
-                createFloatingText(x, y, `Vazio...`, "#9ca3af");
-            } else {
-                somBau.currentTime = 0; somBau.volume = masterVolume; somBau.play().catch(() => { });
-                const items = ['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'shield', 'dragon', 'glove', 'marreta', 'relogio'];
-                let itemKey = items[Math.floor(Math.random() * items.length)];
-
-                if (itemKey === 'shield') {
-                    applyRandomItem(x, y, 'shield');
-                } else {
-                    inventory[itemKey]++;
-                    const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉', glove: '💪', marreta: '🗡️', relogio: '⏰' };
-                    showToast(`+1 ${itemIcons[itemKey]} Guardado!`, 'info');
-                    createFloatingText(x, y, `+1 ${itemIcons[itemKey]}`, "#facc15");
-                    updateInventoryUI();
-                    saveData();
-                }
-            }
-            updateUI();
-        }
-
-        function applyRandomItem(x, y, forceItem = null) {
-            const items = ['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'shield', 'dragon', 'marreta', 'relogio'];
-            let itemKey = forceItem || items[Math.floor(Math.random() * items.length)];
-            const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', shield: '🛡️', dragon: '🐉', marreta: '🗡️', relogio: '⏰' };
-
-            let used = false;
-            let targetX = x, targetY = y;
-
-            if (itemKey === 'dragon') {
-                const frozen = blocks.filter(b => b.isFrozen);
-                if (frozen.length > 0) {
-                    blocks.forEach(b => { b.isFrozen = false; b.iceHp = 0; });
-                    used = true;
-                    showToast("Dragão: Gelo derretido!");
-                }
-            } else if (itemKey === 'shield') {
-                if (!wizardShieldActive) {
-                    wizardShieldActive = true; wizardShieldTime = 30;
-                    updateWizardUI();
-                    if (shieldInterval) clearInterval(shieldInterval);
-                    shieldInterval = setInterval(() => {
-                        if (isPaused) return;
-                        wizardShieldTime--;
-                        wizardTimerEl.textContent = `${wizardShieldTime}s`;
-                        if (wizardShieldTime <= 0) {
-                            wizardShieldActive = false; clearInterval(shieldInterval); updateWizardUI();
-                        }
-                    }, 1000);
-                    used = true;
-                    showToast("Escudo Ativado!");
-                }
-            } else if (itemKey === 'relogio') {
-                if (!clockActive) {
-                    clockActive = true; clockTime = 30;
-                    if (clockInterval) clearInterval(clockInterval);
-                    clockContainerEl.classList.remove('hidden');
-                    clockTimerEl.textContent = `${clockTime}s`;
-                    clockInterval = setInterval(() => {
-                        if (isPaused) return;
-                        clockTime--;
-                        if (clockTime > 0) { clockTimerEl.textContent = `${clockTime}s`; }
-                        else { handleClockEnd(); }
-                    }, 1000);
-                    used = true;
-                    showToast("Tempo Parado por 30s!");
-                }
-            } else if (itemKey === 'hammer') {
-                const targets = blocks.filter(b => b.w > 1 && b.targetR < ROWS);
-                if (targets.length > 0) {
-                    const b = targets[Math.floor(Math.random() * targets.length)];
-                    b.w--; used = true;
-                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
-                }
-            } else if (itemKey === 'marreta') {
-                const targets = blocks.filter(b => b.w > 1 && b.targetR < ROWS);
-                if (targets.length > 0) {
-                    const b = targets[Math.floor(Math.random() * targets.length)];
-                    let w1 = Math.floor(b.w / 2);
-                    let w2 = Math.ceil(b.w / 2);
-                    b.w = w1;
-                    const newB = new Block(b.c + w1, b.r, w2, false);
-                    newB.targetR = b.targetR;
-                    newB.y = b.y;
-                    newB.isFrozen = b.isFrozen;
-                    newB.iceHp = b.iceHp;
-                    blocks.push(newB);
-                    used = true;
-                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
-                }
-            } else if (itemKey === 'lightning') {
-                const targets = blocks.filter(b => !b.isFrozen && b.targetR < ROWS);
-                if (targets.length > 0) {
-                    const b = targets[Math.floor(Math.random() * targets.length)];
-                    const surround = blocks.filter(item => {
-                        if (item.isFrozen) return false;
-                        if (item === b) return true;
-                        if (item.targetR === b.targetR && (item.c + item.w === b.c || item.c === b.c + b.w)) return true;
-                        if (Math.abs(item.targetR - b.targetR) === 1 && item.c < b.c + b.w && item.c + item.w > b.c) return true;
-                        return false;
-                    });
-                    blocks = blocks.filter(item => !surround.includes(item));
-                    used = true;
-                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
-                }
-            } else if (itemKey === 'tractor') {
-                const targets = blocks.filter(b => b.targetR < ROWS);
-                if (targets.length > 0) {
-                    const targetsWithNonFrozen = targets.filter(b => !b.isFrozen);
-                    if (targetsWithNonFrozen.length > 0) {
-                        const randR = targetsWithNonFrozen[Math.floor(Math.random() * targetsWithNonFrozen.length)].targetR;
+                if (activeTool === 'hammer') {
+                    const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
+                    if (b && b.w > 1) {
+                        b.w--; used = true;
+                        targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                    }
+                } else if (activeTool === 'marreta') {
+                    const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
+                    if (b && b.w > 1) {
+                        let w1 = Math.floor(b.w / 2);
+                        let w2 = Math.ceil(b.w / 2);
+                        b.w = w1;
+                        const newB = new Block(b.c + w1, b.r, w2, false);
+                        newB.targetR = b.targetR;
+                        newB.y = b.y;
+                        newB.isFrozen = b.isFrozen;
+                        newB.iceHp = b.iceHp;
+                        blocks.push(newB);
+                        used = true;
+                        targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                    }
+                } else if (activeTool === 'lightning') {
+                    const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
+                    if (b && !b.isFrozen) {
+                        const surround = blocks.filter(item => {
+                            if (item.isFrozen) return false;
+                            if (item === b) return true;
+                            if (item.targetR === b.targetR && (item.c + item.w === b.c || item.c === b.c + b.w)) return true;
+                            if (Math.abs(item.targetR - b.targetR) === 1 && item.c < b.c + b.w && item.c + item.w > b.c) return true;
+                            return false;
+                        });
+                        blocks = blocks.filter(item => !surround.includes(item));
+                        used = true;
+                        targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                    }
+                } else if (activeTool === 'tractor') {
+                    const targets = blocks.filter(b => b.targetR === r && !b.isFrozen);
+                    if (targets.length > 0) {
                         blocks = blocks.filter(item => {
-                            if (item.targetR === randR && !item.isFrozen) return false;
+                            if (item.targetR === r && !item.isFrozen) return false;
                             return true;
                         });
                         used = true;
-                        targetX = canvas.width / 2; targetY = randR * CELL_SIZE + CELL_SIZE / 2;
+                        targetX = canvas.width / 2; targetY = r * CELL_SIZE + CELL_SIZE / 2;
+                    }
+                } else if (activeTool === 'fire') {
+                    const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
+                    if (b && b.isFrozen) {
+                        b.iceHp--; if (b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; }
+                        used = true;
+                        targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                    }
+                } else if (activeTool === 'superfire') {
+                    const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
+                    if (b && b.isFrozen) {
+                        const surround = blocks.filter(item => {
+                            if (!item.isFrozen) return false;
+                            if (item === b) return true;
+                            if (item.targetR === b.targetR && (item.c + item.w === b.c || item.c === b.c + b.w)) return true;
+                            if (Math.abs(item.targetR - b.targetR) === 1 && item.c < b.c + b.w && item.c + item.w > b.c) return true;
+                            return false;
+                        });
+                        surround.forEach(item => {
+                            item.iceHp--; if (item.iceHp <= 0) { item.isFrozen = false; item.iceHp = 0; }
+                        });
+                        used = true;
+                        targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
                     }
                 }
-            } else if (itemKey === 'fire') {
-                const targets = blocks.filter(b => b.isFrozen);
-                if (targets.length > 0) {
-                    const b = targets[Math.floor(Math.random() * targets.length)];
-                    b.iceHp--; if (b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; }
-                    used = true;
-                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
-                }
-            } else if (itemKey === 'superfire') {
-                const targets = blocks.filter(b => b.isFrozen);
-                if (targets.length > 0) {
-                    const b = targets[Math.floor(Math.random() * targets.length)];
-                    const surround = blocks.filter(item => {
-                        if (!item.isFrozen) return false;
-                        if (item === b) return true;
-                        if (item.targetR === b.targetR && (item.c + item.w === b.c || item.c === b.c + b.w)) return true;
-                        if (Math.abs(item.targetR - b.targetR) === 1 && item.c < b.c + b.w && item.c + item.w > b.c) return true;
-                        return false;
-                    });
-                    surround.forEach(item => {
-                        item.iceHp--; if (item.iceHp <= 0) { item.isFrozen = false; item.iceHp = 0; }
-                    });
-                    used = true;
-                    targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
-                }
-            }
 
-            if (!used && !forceItem) {
-                // Se o item falhou (não tinha alvo), converte para o raio (que age livremente)
-                applyRandomItem(x, y, 'lightning');
-                return;
-            }
-
-            createFloatingText(x, y, `${itemIcons[itemKey]}`, "#3b82f6");
-
-            if (['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'marreta'].includes(itemKey) && used) {
-                playExplosionSound();
-                createExplosion(targetX, targetY, '#fff');
-            }
-        }
-
-        // --- CONTROLES ---
-        inventoryToggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (isProcessingTurn || isRefilling || activeTool || isPaused) return;
-            volumePopup.classList.add('hidden-menu');
-            inventoryMenuEl.classList.toggle('hidden-menu');
-        });
-
-        cancelItemBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            cancelTool();
-        });
-
-        volumeToggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            inventoryMenuEl.classList.add('hidden-menu');
-            volumePopup.classList.toggle('hidden-menu');
-        });
-
-        volumeSlider.addEventListener('input', (e) => {
-            masterVolume = e.target.value / 100;
-            bgMusic.volume = isPaused ? masterVolume * 0.2 : masterVolume * 0.6;
-            somDanger.volume = masterVolume;
-            somCoin.volume = masterVolume;
-            somBau.volume = masterVolume;
-            somGameOver.volume = masterVolume;
-            localStorage.setItem('dropdom_volume', masterVolume);
-        });
-
-        document.getElementById('stop-clock-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (clockActive && !isPaused) handleClockEnd();
-        });
-
-        document.getElementById('pause-toggle').addEventListener('click', (e) => {
-            e.stopPropagation();
-            togglePause();
-        });
-
-        document.getElementById('resume-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            togglePause();
-        });
-
-        // Click nas setas de ajuda
-        arrowPreview.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (isStuckMode) executeForceUp();
-        });
-
-        gameWrapperEl.addEventListener('click', (e) => {
-            if (isStuckMode && !activeTool) {
-                const rect = canvas.getBoundingClientRect();
-                const y = e.clientY - rect.top;
-                if (y > ROWS * CELL_SIZE) executeForceUp();
-            }
-        });
-
-        window.addEventListener('click', (e) => {
-            if (!volumePopup.contains(e.target) && !volumeToggleBtn.contains(e.target)) {
-                volumePopup.classList.add('hidden-menu');
-            }
-            if (!inventoryMenuEl.contains(e.target) && !inventoryToggleBtn.contains(e.target)) {
-                inventoryMenuEl.classList.add('hidden-menu');
-            }
-        });
-
-        // Pausar ao perder o foco ou ir para segundo plano
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                pauseGame();
-            }
-        });
-
-        window.addEventListener('blur', () => {
-            pauseGame();
-        });
-
-        // Pausar ao clicar fora do tabuleiro
-        const handleOutsideClick = (e) => {
-            if (!gameActive || isGameOverSequence || isPaused) return;
-
-            const gameWrapper = document.getElementById('game-wrapper');
-            const topHud = document.querySelector('.fixed.top-4');
-            const leftHud = document.querySelector('.fixed.top-28.left-4');
-            const clickedPopup = e.target.closest('.popup-menu');
-
-            const clickedWrapper = gameWrapper && gameWrapper.contains(e.target);
-            const clickedTopHud = topHud && topHud.contains(e.target);
-            const clickedLeftHud = leftHud && leftHud.contains(e.target);
-
-            if (!clickedWrapper && !clickedTopHud && !clickedLeftHud && !clickedPopup) {
-                pauseGame();
-            }
-        };
-
-        window.addEventListener('mousedown', handleOutsideClick);
-        window.addEventListener('touchstart', handleOutsideClick);
-
-        // Resetar o temporizador de inatividade em qualquer interação do usuário
-        const activityEvents = ['mousedown', 'mousemove', 'touchstart', 'touchmove', 'keydown', 'click'];
-        activityEvents.forEach(evt => {
-            window.addEventListener(evt, resetInactivityTimer, { passive: true });
-        });
-
-        function resizeCanvas() {
-            const h = window.innerHeight - 180;
-            const w = window.innerWidth - 40;
-            CELL_SIZE = Math.min(Math.floor(h / (ROWS + 1.2)), Math.floor(w / COLS), 70);
-            canvas.width = CELL_SIZE * COLS;
-            canvas.height = ROWS * CELL_SIZE + CELL_SIZE + 5;
-        }
-
-
-
-        window.addEventListener('resize', resizeCanvas);
-
-        class Block {
-            constructor(c, r, w, isPreview = false) {
-                this.c = c; this.r = r; this.w = w; this.targetR = r;
-                this.x = c * CELL_SIZE; this.y = r * CELL_SIZE;
-                this.color = COLORS[Math.floor(Math.random() * COLORS.length)]; this.isPreview = isPreview;
-                this.isFrozen = false; this.iceHp = 0; this.hasChest = false;
-                this.isGray = false;
-            }
-            draw(offsetY = 0) {
-                const targetY = this.targetR * CELL_SIZE + offsetY;
-                const dy = targetY - this.y;
-                if (Math.abs(dy) < 0.2) this.y = targetY; else this.y += dy * 0.15;
-                if (selectedBlock !== this && activeTool === null) {
-                    const dx = this.c * CELL_SIZE - this.x;
-                    if (Math.abs(dx) < 0.2) this.x = this.c * CELL_SIZE; else this.x += dx * 0.3;
-                }
-                const gap = 3, r = 8;
-                // Prévia mais transparente (0.25)
-                const alpha = this.isPreview ? 0.25 : 1;
-
-                ctx.globalAlpha = alpha;
-                ctx.fillStyle = this.isGray ? '#475569' : this.color;
-                ctx.shadowColor = this.isGray ? 'transparent' : this.color;
-                ctx.shadowBlur = this.isGray ? 0 : 8;
-                this.roundRect(this.x + gap, this.y + gap, (this.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r);
-                ctx.fill();
-                ctx.globalAlpha = 1;
-
-                if (!this.isGray) {
-                    ctx.fillStyle = `rgba(255,255,255,${alpha * 0.2})`;
-                    ctx.fillRect(this.x + gap + 4, this.y + gap + 4, (this.w * CELL_SIZE) - gap * 2 - 8, (CELL_SIZE - gap * 2) / 2 - 2);
-                }
-
-                // Gelo e Baú só aparecem se não for prévia
-                if (this.hasChest && !this.isGray && !this.isPreview) {
-                    if (emojiImages.chest && emojiImages.chest.complete) {
-                        const size = 24;
-                        ctx.drawImage(emojiImages.chest, this.x + (this.w * CELL_SIZE) / 2 - size / 2, this.y + CELL_SIZE / 2 - size / 2, size, size);
-                    } else {
-                        ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🎁', this.x + (this.w * CELL_SIZE) / 2, this.y + CELL_SIZE / 2);
-                    }
-                }
-                if (this.isFrozen && !this.isGray && !this.isPreview) {
-                    ctx.shadowBlur = 15; ctx.shadowColor = "#22d3ee"; ctx.fillStyle = 'rgba(165, 243, 252, 0.4)';
-                    this.roundRect(this.x + gap, this.y + gap, (this.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r); ctx.fill();
-                    ctx.shadowBlur = 0;
-
-                    if (emojiImages.ice && emojiImages.ice.complete) {
-                        const size = 20;
-                        const totalW = size + 15; // Image + text width estimate
-                        const startX = this.x + (this.w * CELL_SIZE) / 2 - totalW / 2;
-                        ctx.drawImage(emojiImages.ice, startX, this.y + CELL_SIZE / 2 - size / 2, size, size);
-                        ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-                        ctx.fillText(this.iceHp, startX + size + 2, this.y + CELL_SIZE / 2);
-                    } else {
-                        ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                        ctx.fillText(`🧊${this.iceHp}`, this.x + (this.w * CELL_SIZE) / 2, this.y + CELL_SIZE / 2);
-                    }
-                }
-            }
-            roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
-        }
-
-        function initGame() {
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            blocks = []; particles = []; score = 0; comboMultiplier = 0; wizardCharge = 0;
-            isGameOverSequence = false; wizardShieldActive = false; turnCounter = 0;
-            isProcessingTurn = false; isRefilling = false; selectedBlock = null;
-            hasGameStarted = true; isStuckMode = false;
-
-            isPaused = false;
-            const pauseIcon = document.getElementById('pause-icon');
-            const pauseTooltip = document.getElementById('pause-tooltip');
-            const pauseOverlay = document.getElementById('pause-overlay');
-            if (pauseIcon) pauseIcon.innerHTML = '<i class="fas fa-pause"></i>';
-            if (pauseTooltip) pauseTooltip.textContent = 'Pausar';
-            if (pauseOverlay) {
-                pauseOverlay.style.opacity = '0';
-                pauseOverlay.classList.add('hidden');
-            }
-
-            if (shieldInterval) clearInterval(shieldInterval);
-            bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
-            inventory = { hammer: 0, tractor: 0, lightning: 0, fire: 0, superfire: 0, dragon: 0, glove: 0, marreta: 0, relogio: 0 };
-            if (clockInterval) clearInterval(clockInterval);
-            clockActive = false; clockTime = 0;
-            if (clockContainerEl) clockContainerEl.classList.add('hidden');
-            startMatchTimer();
-            resetInactivityTimer();
-
-            updateUI(); updateWizardUI(); updateInventoryUI();
-            generateNextPreview();
-            gameActive = true;
-            overlay.classList.add('hidden'); overlay.style.opacity = '0';
-            comboDisplayEl.style.opacity = '0';
-            toggleStuckUI(false);
-
-            loop();
-            isRefilling = true;
-            pushMultipleRows(6, () => { isRefilling = false; checkStuckState(); });
-            twemoji.parse(document.body);
-        }
-
-        function generateNextPreview() {
-            nextRowBlocks = [];
-            let isGap = new Array(COLS).fill(false);
-
-            // Determinar tamanhos dos dois espaços (gaps)
-            let s1 = Math.floor(Math.random() * 2) + 1; // 1 ou 2
-            let s2 = (s1 > 1) ? 1 : (Math.floor(Math.random() * 2) + 1); // Se s1 > 1, s2 deve ser 1. Senão, 1 ou 2.
-
-            // Posicionar o primeiro gap
-            let p1 = Math.floor(Math.random() * (COLS - s1 + 1));
-            for (let i = 0; i < s1; i++) isGap[p1 + i] = true;
-
-            // Encontrar posições válidas para o segundo gap (sem sobreposição)
-            let validP2 = [];
-            for (let i = 0; i <= COLS - s2; i++) {
-                let overlap = false;
-                for (let j = 0; j < s2; j++) {
-                    if (isGap[i + j]) { overlap = true; break; }
-                }
-                if (!overlap) validP2.push(i);
-            }
-
-            if (validP2.length > 0) {
-                let p2 = validP2[Math.floor(Math.random() * validP2.length)];
-                for (let i = 0; i < s2; i++) isGap[p2 + i] = true;
-            }
-
-            // Gerar blocos nos espaços restantes
-            let c = 0;
-            while (c < COLS) {
-                if (isGap[c]) { c++; continue; }
-
-                let maxPossibleW = 0;
-                while (c + maxPossibleW < COLS && !isGap[c + maxPossibleW] && maxPossibleW < 4) {
-                    maxPossibleW++;
-                }
-
-                if (maxPossibleW > 0) {
-                    let w = Math.floor(Math.random() * maxPossibleW) + 1;
-                    const b = new Block(c, ROWS, w, true);
-                    b.y = canvas.height + CELL_SIZE * 2;
-                    nextRowBlocks.push(b);
-                    c += w;
-                } else {
-                    c++;
-                }
-            }
-
-            // Lógica de Probabilidade (A partir do Turno 1)
-            if (turnCounter > 1) { // Aumentado para turnCounter > 1 para dar uma folga inicial
-                const rand = Math.random() * 100;
-                if (rand < 40) {
-                    // 40% Apenas Gelo
-                    if (nextRowBlocks.length > 0) {
-                        const b = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
-                        b.isFrozen = true; b.iceHp = 1;
-                    }
-                } else if (rand < 50) {
-                    // 10% Apenas Baú
-                    if (nextRowBlocks.length > 0) {
-                        const b = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
-                        b.hasChest = true;
-                    }
-                } else if (rand < 60) {
-                    // 10% Gelo + Baú
-                    if (nextRowBlocks.length > 0) {
-                        const b1 = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
-                        b1.isFrozen = true; b1.iceHp = 1;
-                        const b2 = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
-                        b2.hasChest = true;
-                    }
-                }
-            }
-        }
-
-        function pushNextRow(callback) {
-            turnCounter++;
-            blocks.forEach(b => b.targetR--);
-            nextRowBlocks.forEach(b => {
-                b.r = ROWS; b.targetR = ROWS - 1; b.y = (ROWS + 1) * CELL_SIZE;
-                b.isPreview = false; blocks.push(b);
-            });
-            generateNextPreview();
-            setTimeout(() => checkGravity(callback), 80);
-        }
-
-        function triggerPushChain(onComplete, isFirstPush = true) {
-            let linesBeforePush = turnLinesCleared;
-
-            if (!isFirstPush && blocks.some(b => b.targetR <= 1)) {
-                if (onComplete) onComplete();
-                return;
-            }
-
-            pushNextRow(() => {
-                let linesFromPush = turnLinesCleared - linesBeforePush;
-                if (linesFromPush > 0) {
-                    setTimeout(() => triggerPushChain(onComplete, false), 150);
-                } else {
-                    if (onComplete) onComplete();
-                }
-            });
-        }
-
-        function executeForceUp() {
-            if (isProcessingTurn || isRefilling) return;
-            toggleStuckUI(false);
-            isProcessingTurn = true;
-            turnLinesCleared = 0;
-            waitingForForceUp = true;
-            triggerPushChain(() => {
-                updateWizardCharge(WIZARD_STEP);
-                isProcessingTurn = false;
-                waitingForForceUp = false;
-                checkAutoRefill();
-            });
-        }
-
-        function checkGravity(callback, isFinalCheck = false) {
-            let moved = false;
-            blocks.sort((a, b) => a.targetR - b.targetR).forEach(b => {
-                if (b.targetR < ROWS - 1 && !blocks.some(o => o.targetR === b.targetR + 1 && !(o.c >= b.c + b.w || o.c + o.w <= b.c))) {
-                    b.targetR++; moved = true;
-                }
-            });
-
-            if (moved) {
-                setTimeout(() => checkGravity(callback, isFinalCheck), 100);
-            } else {
-                let corrected = false;
-                for (let r = 0; r < ROWS; r++) {
-                    let occupied = new Array(COLS).fill(null);
-                    const rBlocks = blocks.filter(b => b.targetR === r);
-                    rBlocks.forEach(b => {
-                        let hasOverlap = false;
-                        for (let i = 0; i < b.w; i++) {
-                            const pos = b.c + i;
-                            if (pos >= COLS || occupied[pos] !== null) { hasOverlap = true; break; }
-                        }
-                        if (hasOverlap) {
-                            if (b.targetR < ROWS - 1) { b.targetR++; corrected = true; }
-                            else { blocks = blocks.filter(item => item !== b); corrected = true; }
-                        } else {
-                            for (let i = 0; i < b.w; i++) occupied[b.c + i] = b;
-                        }
-                    });
-                }
-                if (corrected) { setTimeout(() => checkGravity(callback, isFinalCheck), 50); return; }
-                checkLines(callback, isFinalCheck);
-            }
-        }
-
-        function checkLines(callback, isFinalCheck = false) {
-            let linesToClear = [];
-            for (let r = 0; r < ROWS; r++) {
-                let map = new Array(COLS).fill(0);
-                blocks.filter(b => b.targetR === r).forEach(b => { for (let i = 0; i < b.w; i++) map[b.c + i] = 1; });
-                if (map.every(v => v === 1)) linesToClear.push(r);
-            }
-
-            if (linesToClear.length > 0) {
-                const linesCount = linesToClear.length;
-                turnLinesCleared += linesCount;
-
-                let roundPoints = 0;
-                let blocksToRemove = [];
-
-                linesToClear.forEach(r => {
-                    const rowBlocks = blocks.filter(b => b.targetR === r);
-                    rowBlocks.forEach(b => {
-                        if (b.isFrozen) {
-                            b.iceHp--;
-                            if (b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; }
-                        } else {
-                            if (b.hasChest) giveChestReward(b.x + (b.w * CELL_SIZE / 2), b.y);
-                            createExplosion(b.x + b.w * CELL_SIZE / 2, b.y + CELL_SIZE / 2, b.color);
-                            blocksToRemove.push(b);
-                        }
-                    });
-                    roundPoints += 100;
-                });
-
-                if (blocksToRemove.length > 0) {
-                    playExplosionSound();
-                    blocks = blocks.filter(b => !blocksToRemove.includes(b));
-
-                    const multiplier = Math.max(1, turnLinesCleared);
-                    const totalPoints = roundPoints * multiplier;
-                    score += totalPoints;
-                    if (score > bestScore) bestScore = score;
-                    createFloatingText(canvas.width / 2 + 40, (linesToClear[0] * CELL_SIZE), `★ ${totalPoints}`, "#3b82f6");
-
+                if (used) {
+                    inventory[activeTool]--;
                     saveData();
-                    updateUI(true);
-
-                    setTimeout(() => checkGravity(callback, isFinalCheck), 250);
+                    playExplosionSound();
+                    createExplosion(targetX, targetY, '#fff');
+                    cancelTool();
+                    isProcessingTurn = true;
+                    setTimeout(() => { checkGravity(() => { isProcessingTurn = false; checkStuckState(); }, true); }, 100);
                 } else {
-                    if (callback) callback();
-                }
-
-            } else {
-                if (blocks.some(b => b.targetR <= 0)) { gameOver(); return; }
-
-                if (callback) {
-                    callback();
-                } else {
-                    isProcessingTurn = false;
-                    setTimeout(() => { if (!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
-                    checkAutoRefill();
-                }
-            }
-        }
-
-        // --- CORREÇÃO: Refill mantém até a linha 6 (índice 4 de baixo pra cima é 6 linhas ocupadas) ---
-        let currentDangerState = '';
-        function updateWarningUI() {
-            const activeRowIndices = new Set(blocks.map(b => b.targetR));
-            const maxRowIndex = blocks.length > 0 ? Math.min(...activeRowIndices) : ROWS;
-
-            let newState = '';
-            if (maxRowIndex <= 1 && maxRowIndex >= 0) newState = 'alert-red';
-            else if (maxRowIndex <= 4 && maxRowIndex > 1) newState = 'alert-yellow';
-
-            if (isProcessingTurn) {
-                if (currentDangerState === 'alert-red') newState = 'alert-red';
-                else if (currentDangerState === 'alert-yellow' && newState === '') newState = 'alert-yellow';
-            }
-
-            if (currentDangerState !== newState) {
-                if (newState === 'alert-red' && musicaIniciada) {
-                    somDanger.currentTime = 0;
-                    somDanger.volume = masterVolume;
-                    somDanger.play().catch(() => { });
-                } else if (currentDangerState === 'alert-red' && newState !== 'alert-red') {
-                    somDanger.pause();
-                    somDanger.currentTime = 0;
-                }
-                currentDangerState = newState;
-                dangerOverlay.className = `absolute inset-0 pointer-events-none transition-all duration-300 z-20 rounded-xl ${newState}`;
-            }
-        }
-
-        function checkAutoRefill() {
-            if (isRefilling || isProcessingTurn) return;
-            const activeRowIndices = new Set(blocks.map(b => b.targetR));
-            const maxRowIndex = blocks.length > 0 ? Math.min(...activeRowIndices) : ROWS;
-
-            // Se o topo da pilha estiver abaixo da linha 6 (índices 7, 8, 9), sobe linhas
-            if (maxRowIndex > 4 || blocks.length === 0) {
-                const rowsToAdd = maxRowIndex - 4; // Quantas linhas subir para chegar na 6 (índice 4)
-                if (rowsToAdd > 0) {
-                    isRefilling = true; isProcessingTurn = true;
-                    pushMultipleRows(rowsToAdd, () => {
-                        isRefilling = false; isProcessingTurn = false;
-                        setTimeout(() => { comboDisplayEl.style.opacity = "0"; }, 1500);
-                        checkStuckState();
-                    });
-                }
-            } else {
-                checkStuckState();
-            }
-        }
-
-        function checkStuckState() {
-            if (isProcessingTurn || isRefilling || isGameOverSequence) return;
-            let canMove = false;
-            for (let b of blocks) {
-                if (!b.isFrozen) {
-                    const canLeft = b.c > 0 && !blocks.some(o => o.targetR === b.targetR && o.c + o.w === b.c);
-                    const canRight = b.c + b.w < COLS && !blocks.some(o => o.targetR === b.targetR && o.c === b.c + b.w);
-                    if (canLeft || canRight) { canMove = true; break; }
-                }
-            }
-            toggleStuckUI(!canMove);
-        }
-
-        function toggleStuckUI(show) {
-            isStuckMode = show;
-            if (show) {
-                choiceMessage.classList.remove('hidden');
-                arrowPreview.classList.remove('hidden');
-            } else {
-                choiceMessage.classList.add('hidden');
-                arrowPreview.classList.add('hidden');
-            }
-        }
-
-        function pushMultipleRows(count, finalCallback) {
-            if (count <= 0) { if (finalCallback) finalCallback(); return; }
-            pushNextRow(() => { setTimeout(() => { pushMultipleRows(count - 1, finalCallback); }, 150); });
-        }
-
-        function updateWizardCharge(amt) {
-            if (wizardShieldActive) return;
-            wizardCharge = Math.min(WIZARD_MAX, wizardCharge + amt);
-            if (wizardCharge >= WIZARD_MAX) { wizardCharge = 0; triggerWizardSpell(); }
-            updateWizardUI();
-        }
-
-        function triggerWizardSpell() {
-            const eligible = blocks.filter(b => !b.isFrozen && b.targetR < ROWS && b !== selectedBlock);
-            if (eligible.length > 0) {
-                const b = eligible[Math.floor(Math.random() * eligible.length)];
-                b.isFrozen = true; b.iceHp = 2;
-                showToast("O Feiticeiro lançou um feitiço!");
-            }
-            gameWrapperEl.classList.add('alert-freeze');
-            setTimeout(() => gameWrapperEl.classList.remove('alert-freeze'), 1000);
-            checkStuckState();
-        }
-
-        function updateWizardUI() {
-            wizardBarEl.style.width = `${(wizardCharge / WIZARD_MAX) * 100}%`;
-            wizardContainerEl.classList.toggle('shield-active', wizardShieldActive);
-            wizardTimerEl.classList.toggle('hidden', !wizardShieldActive);
-        }
-
-        function gameOver() {
-            if (isGameOverSequence) return;
-            gameActive = false; isGameOverSequence = true;
-            stopMatchTimer();
-            toggleStuckUI(false);
-            somDanger.pause();
-            somDanger.currentTime = 0;
-            overlay.classList.remove('hidden'); overlay.style.opacity = '1';
-            finalScoreEl.textContent = score; finalBestEl.textContent = bestScore;
-            somGameOver.currentTime = 0; somGameOver.volume = masterVolume; somGameOver.play().catch(() => { });
-        }
-
-        function updateUI(anim = false) {
-            scoreEl.textContent = score; bestEl.textContent = bestScore;
-            if (turnLinesCleared >= 2) {
-                if (comboHideTimer) clearTimeout(comboHideTimer);
-                comboDisplayEl.style.top = `${(canvas.height / 2) - 80}px`;
-                comboDisplayEl.style.left = `50%`;
-                comboDisplayEl.style.transform = `translate(-50%, -50%)`;
-                comboDisplayEl.innerHTML = `COMBO<br>x${turnLinesCleared}`;
-                comboDisplayEl.style.opacity = "1";
-                comboDisplayEl.classList.remove('combo-pulse');
-                void comboDisplayEl.offsetWidth;
-                comboDisplayEl.classList.add('combo-pulse');
-            }
-        }
-
-        function saveData() {
-            localStorage.setItem('dropdom_best', bestScore);
-            localStorage.setItem('dropdom_inventory', JSON.stringify(inventory));
-        }
-
-        canvas.addEventListener('mousedown', handleStart); canvas.addEventListener('touchstart', e => { e.preventDefault(); handleStart(e.touches[0]); });
-        window.addEventListener('mousemove', handleMove); window.addEventListener('touchmove', e => { e.preventDefault(); handleMove(e.touches[0]); });
-        window.addEventListener('mouseup', handleEnd); window.addEventListener('touchend', handleEnd);
-
-        function handleStart(e) {
-            if (!gameActive || isProcessingTurn || isRefilling || isPaused) return;
-            const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left, y = e.clientY - rect.top;
-
-            const c = Math.floor(x / CELL_SIZE), r = Math.floor(y / CELL_SIZE);
-            if (activeTool && activeTool !== 'glove') {
-                handleTool(r, c);
-                return;
-            }
-            const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
-            if (b) {
-                if (b.isFrozen && activeTool !== 'glove') {
-                    showToast("Bloco Congelado!", "error");
+                    showToast("Alvo Inválido!", "error");
                     playErrorSound();
+                }
+            }
+
+            function giveChestReward(x, y) {
+                const rand = Math.random();
+                if (rand < 0.7) {
+                    createFloatingText(x, y, `Vazio...`, "#9ca3af");
+                } else {
+                    somBau.currentTime = 0; somBau.volume = masterVolume; somBau.play().catch(() => { });
+                    const items = ['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'shield', 'dragon', 'glove', 'marreta', 'relogio'];
+                    let itemKey = items[Math.floor(Math.random() * items.length)];
+
+                    if (itemKey === 'shield') {
+                        applyRandomItem(x, y, 'shield');
+                    } else {
+                        inventory[itemKey]++;
+                        const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', dragon: '🐉', glove: '💪', marreta: '🗡️', relogio: '⏰' };
+                        showToast(`+1 ${itemIcons[itemKey]} Guardado!`, 'info');
+                        createFloatingText(x, y, `+1 ${itemIcons[itemKey]}`, "#facc15");
+                        updateInventoryUI();
+                        saveData();
+                    }
+                }
+                updateUI();
+            }
+
+            function applyRandomItem(x, y, forceItem = null) {
+                const items = ['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'shield', 'dragon', 'marreta', 'relogio'];
+                let itemKey = forceItem || items[Math.floor(Math.random() * items.length)];
+                const itemIcons = { hammer: '🔨', tractor: '🚜', lightning: '⚡', fire: '🔥', superfire: '🔥🔥', shield: '🛡️', dragon: '🐉', marreta: '🗡️', relogio: '⏰' };
+
+                let used = false;
+                let targetX = x, targetY = y;
+
+                if (itemKey === 'dragon') {
+                    const frozen = blocks.filter(b => b.isFrozen);
+                    if (frozen.length > 0) {
+                        blocks.forEach(b => { b.isFrozen = false; b.iceHp = 0; });
+                        used = true;
+                        showToast("Dragão: Gelo derretido!");
+                    }
+                } else if (itemKey === 'shield') {
+                    if (!wizardShieldActive) {
+                        wizardShieldActive = true; wizardShieldTime = 30;
+                        updateWizardUI();
+                        if (shieldInterval) clearInterval(shieldInterval);
+                        shieldInterval = setInterval(() => {
+                            if (isPaused) return;
+                            wizardShieldTime--;
+                            wizardTimerEl.textContent = `${wizardShieldTime}s`;
+                            if (wizardShieldTime <= 0) {
+                                wizardShieldActive = false; clearInterval(shieldInterval); updateWizardUI();
+                            }
+                            saveData();
+                        }, 1000);
+                        used = true;
+                        showToast("Escudo Ativado!");
+                    }
+                } else if (itemKey === 'relogio') {
+                    if (!clockActive) {
+                        clockActive = true; clockTime = 30;
+                        if (clockInterval) clearInterval(clockInterval);
+                        clockContainerEl.classList.remove('hidden');
+                        clockTimerEl.textContent = `${clockTime}s`;
+                        clockInterval = setInterval(() => {
+                            if (isPaused) return;
+                            clockTime--;
+                            if (clockTime > 0) { clockTimerEl.textContent = `${clockTime}s`; }
+                            else { handleClockEnd(); }
+                            saveData();
+                        }, 1000);
+                        used = true;
+                        showToast("Tempo Parado por 30s!");
+                    }
+                } else if (itemKey === 'hammer') {
+                    const targets = blocks.filter(b => b.w > 1 && b.targetR < ROWS);
+                    if (targets.length > 0) {
+                        const b = targets[Math.floor(Math.random() * targets.length)];
+                        b.w--; used = true;
+                        targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                    }
+                } else if (itemKey === 'marreta') {
+                    const targets = blocks.filter(b => b.w > 1 && b.targetR < ROWS);
+                    if (targets.length > 0) {
+                        const b = targets[Math.floor(Math.random() * targets.length)];
+                        let w1 = Math.floor(b.w / 2);
+                        let w2 = Math.ceil(b.w / 2);
+                        b.w = w1;
+                        const newB = new Block(b.c + w1, b.r, w2, false);
+                        newB.targetR = b.targetR;
+                        newB.y = b.y;
+                        newB.isFrozen = b.isFrozen;
+                        newB.iceHp = b.iceHp;
+                        blocks.push(newB);
+                        used = true;
+                        targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                    }
+                } else if (itemKey === 'lightning') {
+                    const targets = blocks.filter(b => !b.isFrozen && b.targetR < ROWS);
+                    if (targets.length > 0) {
+                        const b = targets[Math.floor(Math.random() * targets.length)];
+                        const surround = blocks.filter(item => {
+                            if (item.isFrozen) return false;
+                            if (item === b) return true;
+                            if (item.targetR === b.targetR && (item.c + item.w === b.c || item.c === b.c + b.w)) return true;
+                            if (Math.abs(item.targetR - b.targetR) === 1 && item.c < b.c + b.w && item.c + item.w > b.c) return true;
+                            return false;
+                        });
+                        blocks = blocks.filter(item => !surround.includes(item));
+                        used = true;
+                        targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                    }
+                } else if (itemKey === 'tractor') {
+                    const targets = blocks.filter(b => b.targetR < ROWS);
+                    if (targets.length > 0) {
+                        const targetsWithNonFrozen = targets.filter(b => !b.isFrozen);
+                        if (targetsWithNonFrozen.length > 0) {
+                            const randR = targetsWithNonFrozen[Math.floor(Math.random() * targetsWithNonFrozen.length)].targetR;
+                            blocks = blocks.filter(item => {
+                                if (item.targetR === randR && !item.isFrozen) return false;
+                                return true;
+                            });
+                            used = true;
+                            targetX = canvas.width / 2; targetY = randR * CELL_SIZE + CELL_SIZE / 2;
+                        }
+                    }
+                } else if (itemKey === 'fire') {
+                    const targets = blocks.filter(b => b.isFrozen);
+                    if (targets.length > 0) {
+                        const b = targets[Math.floor(Math.random() * targets.length)];
+                        b.iceHp--; if (b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; }
+                        used = true;
+                        targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                    }
+                } else if (itemKey === 'superfire') {
+                    const targets = blocks.filter(b => b.isFrozen);
+                    if (targets.length > 0) {
+                        const b = targets[Math.floor(Math.random() * targets.length)];
+                        const surround = blocks.filter(item => {
+                            if (!item.isFrozen) return false;
+                            if (item === b) return true;
+                            if (item.targetR === b.targetR && (item.c + item.w === b.c || item.c === b.c + b.w)) return true;
+                            if (Math.abs(item.targetR - b.targetR) === 1 && item.c < b.c + b.w && item.c + item.w > b.c) return true;
+                            return false;
+                        });
+                        surround.forEach(item => {
+                            item.iceHp--; if (item.iceHp <= 0) { item.isFrozen = false; item.iceHp = 0; }
+                        });
+                        used = true;
+                        targetX = b.x + (b.w * CELL_SIZE / 2); targetY = b.y + CELL_SIZE / 2;
+                    }
+                }
+
+                if (!used && !forceItem) {
+                    // Se o item falhou (não tinha alvo), converte para o raio (que age livremente)
+                    applyRandomItem(x, y, 'lightning');
                     return;
                 }
-                if (activeTool === 'glove' && !b.isFrozen) {
-                    cancelTool();
+
+                createFloatingText(x, y, `${itemIcons[itemKey]}`, "#3b82f6");
+
+                if (['hammer', 'tractor', 'lightning', 'fire', 'superfire', 'marreta'].includes(itemKey) && used) {
+                    playExplosionSound();
+                    createExplosion(targetX, targetY, '#fff');
                 }
-                comboDisplayEl.style.opacity = "0";
-                selectedBlock = b;
-                dragStartX = x;
-                blockStartX = b.x;
-                originalC = b.c;
-                playMoveSound();
-            } else if (activeTool === 'glove') {
+                saveData();
+            }
+
+            // --- CONTROLES ---
+            inventoryToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (isProcessingTurn || isRefilling || activeTool || isPaused) return;
+                volumePopup.classList.add('hidden-menu');
+                inventoryMenuEl.classList.toggle('hidden-menu');
+            });
+
+            cancelItemBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 cancelTool();
+            });
+
+            volumeToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                inventoryMenuEl.classList.add('hidden-menu');
+                volumePopup.classList.toggle('hidden-menu');
+            });
+
+            volumeSlider.addEventListener('input', (e) => {
+                masterVolume = e.target.value / 100;
+                bgMusic.volume = isPaused ? masterVolume * 0.2 : masterVolume * 0.6;
+                somDanger.volume = masterVolume;
+                somCoin.volume = masterVolume;
+                somBau.volume = masterVolume;
+                somGameOver.volume = masterVolume;
+                localStorage.setItem('dropdom_volume', masterVolume);
+            });
+
+            document.getElementById('stop-clock-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (clockActive && !isPaused) handleClockEnd();
+            });
+
+            document.getElementById('pause-toggle').addEventListener('click', (e) => {
+                e.stopPropagation();
+                togglePause();
+            });
+
+            document.getElementById('resume-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                togglePause();
+            });
+
+            // Click nas setas de ajuda
+            arrowPreview.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (isStuckMode) executeForceUp();
+            });
+
+            gameWrapperEl.addEventListener('click', (e) => {
+                if (isStuckMode && !activeTool) {
+                    const rect = canvas.getBoundingClientRect();
+                    const y = e.clientY - rect.top;
+                    if (y > ROWS * CELL_SIZE) executeForceUp();
+                }
+            });
+
+            window.addEventListener('click', (e) => {
+                if (!volumePopup.contains(e.target) && !volumeToggleBtn.contains(e.target)) {
+                    volumePopup.classList.add('hidden-menu');
+                }
+                if (!inventoryMenuEl.contains(e.target) && !inventoryToggleBtn.contains(e.target)) {
+                    inventoryMenuEl.classList.add('hidden-menu');
+                }
+            });
+
+            // Pausar ao perder o foco ou ir para segundo plano
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    pauseGame();
+                }
+            });
+
+            window.addEventListener('blur', () => {
+                pauseGame();
+            });
+
+            // Pausar ao clicar fora do tabuleiro
+            const handleOutsideClick = (e) => {
+                if (!gameActive || isGameOverSequence || isPaused) return;
+
+                const gameWrapper = document.getElementById('game-wrapper');
+                const topHud = document.querySelector('.fixed.top-4');
+                const leftHud = document.querySelector('.fixed.top-28.left-4');
+                const clickedPopup = e.target.closest('.popup-menu');
+
+                const clickedWrapper = gameWrapper && gameWrapper.contains(e.target);
+                const clickedTopHud = topHud && topHud.contains(e.target);
+                const clickedLeftHud = leftHud && leftHud.contains(e.target);
+
+                if (!clickedWrapper && !clickedTopHud && !clickedLeftHud && !clickedPopup) {
+                    pauseGame();
+                }
+            };
+
+            window.addEventListener('mousedown', handleOutsideClick);
+            window.addEventListener('touchstart', handleOutsideClick);
+
+            // Resetar o temporizador de inatividade em qualquer interação do usuário
+            const activityEvents = ['mousedown', 'mousemove', 'touchstart', 'touchmove', 'keydown', 'click'];
+            activityEvents.forEach(evt => {
+                window.addEventListener(evt, resetInactivityTimer, { passive: true });
+            });
+
+            function resizeCanvas() {
+                const h = window.innerHeight - 180;
+                const w = window.innerWidth - 40;
+                CELL_SIZE = Math.min(Math.floor(h / (ROWS + 1.2)), Math.floor(w / COLS), 70);
+                canvas.width = CELL_SIZE * COLS;
+                canvas.height = ROWS * CELL_SIZE + CELL_SIZE + 5;
             }
-        }
 
-        function handleMove(e) {
-            if (!selectedBlock || isPaused) return;
-            const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left;
-            const diff = x - dragStartX; let newX = blockStartX + diff;
-            const boardMaxX = (COLS - selectedBlock.w) * CELL_SIZE;
-            let limitL = 0, limitR = boardMaxX;
-            blocks.forEach(b => {
-                if (b !== selectedBlock && b.targetR === selectedBlock.targetR) {
-                    if (b.c < selectedBlock.c) limitL = Math.max(limitL, (b.c + b.w) * CELL_SIZE);
-                    else limitR = Math.min(limitR, b.c * CELL_SIZE - selectedBlock.w * CELL_SIZE);
+
+
+            window.addEventListener('resize', resizeCanvas);
+
+            class Block {
+                constructor(c, r, w, isPreview = false) {
+                    this.c = c; this.r = r; this.w = w; this.targetR = r;
+                    this.x = c * CELL_SIZE; this.y = r * CELL_SIZE;
+                    this.color = COLORS[Math.floor(Math.random() * COLORS.length)]; this.isPreview = isPreview;
+                    this.isFrozen = false; this.iceHp = 0; this.hasChest = false;
+                    this.isGray = false;
                 }
-            });
-            selectedBlock.x = Math.max(limitL, Math.min(newX, limitR));
-        }
-
-        function handleEnd() {
-            if (!selectedBlock || isPaused) return;
-            const idealC = Math.round(selectedBlock.x / CELL_SIZE);
-            const collision = blocks.some(b => {
-                if (b === selectedBlock || b.targetR !== selectedBlock.targetR) return false;
-                return !(idealC + selectedBlock.w <= b.c || b.c + b.w <= idealC);
-            });
-
-            if (!collision && idealC !== selectedBlock.c) {
-                if (selectedBlock.isFrozen && activeTool === 'glove') {
-                    inventory['glove']--;
-                    saveData();
-                    cancelTool();
-                }
-                selectedBlock.c = idealC; selectedBlock.x = idealC * CELL_SIZE; selectedBlock = null;
-                isProcessingTurn = true;
-                toggleStuckUI(false);
-
-                // NOVO: Reseta o contador de linhas destruídas no início do turno
-                turnLinesCleared = 0;
-
-                checkGravity(() => {
-                    if (clockActive) {
-                        isProcessingTurn = false;
-                        if (turnLinesCleared === 0 && !isRefilling && !waitingForForceUp) {
-                            updateWizardCharge(8);
-                        }
-                        setTimeout(() => { if (!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
-                    } else {
-                        triggerPushChain(() => {
-                            isProcessingTurn = false;
-
-                            // Se nenhuma linha foi destruída em todo o processo, sobe mana
-                            if (turnLinesCleared === 0 && !isRefilling && !waitingForForceUp) {
-                                updateWizardCharge(8);
-                            }
-
-                            // Fade out do combo
-                            setTimeout(() => { if (!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
-                            checkAutoRefill();
-                        });
+                draw(offsetY = 0) {
+                    const targetY = this.targetR * CELL_SIZE + offsetY;
+                    const dy = targetY - this.y;
+                    if (Math.abs(dy) < 0.2) this.y = targetY; else this.y += dy * 0.15;
+                    if (selectedBlock !== this && activeTool === null) {
+                        const dx = this.c * CELL_SIZE - this.x;
+                        if (Math.abs(dx) < 0.2) this.x = this.c * CELL_SIZE; else this.x += dx * 0.3;
                     }
-                }, false);
-            } else {
-                selectedBlock.x = selectedBlock.c * CELL_SIZE; selectedBlock = null;
-            }
-        }
-
-        function loop() {
-            if (gameActive) {
-                if (!isPaused) {
-                    updateWarningUI();
-                }
-                // Estilo Original
-                ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 1;
-                for (let i = 1; i < COLS; i++) { ctx.beginPath(); ctx.moveTo(i * CELL_SIZE, 0); ctx.lineTo(i * CELL_SIZE, canvas.height); ctx.stroke(); }
-                for (let j = 1; j < ROWS; j++) { ctx.beginPath(); ctx.moveTo(0, j * CELL_SIZE); ctx.lineTo(canvas.width, j * CELL_SIZE); ctx.stroke(); }
-
-                ctx.fillStyle = '#1e293b'; ctx.fillRect(0, ROWS * CELL_SIZE, canvas.width, CELL_SIZE + 5);
-                ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, ROWS * CELL_SIZE); ctx.lineTo(canvas.width, ROWS * CELL_SIZE); ctx.stroke();
-
-                if (selectedBlock) {
-                    const idealC = Math.round(selectedBlock.x / CELL_SIZE);
-                    ctx.save();
-                    ctx.globalAlpha = 0.1;
                     const gap = 3, r = 8;
-                    const origX = originalC * CELL_SIZE;
-                    const origY = selectedBlock.targetR * CELL_SIZE;
-                    ctx.fillStyle = selectedBlock.isGray ? '#475569' : selectedBlock.color;
-                    ctx.shadowColor = selectedBlock.isGray ? 'transparent' : selectedBlock.color;
-                    ctx.shadowBlur = selectedBlock.isGray ? 0 : 8;
-                    selectedBlock.roundRect(origX + gap, origY + gap, (selectedBlock.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r);
+                    // Prévia mais transparente (0.25)
+                    const alpha = this.isPreview ? 0.25 : 1;
+
+                    ctx.globalAlpha = alpha;
+                    ctx.fillStyle = this.isGray ? '#475569' : this.color;
+                    ctx.shadowColor = this.isGray ? 'transparent' : this.color;
+                    ctx.shadowBlur = this.isGray ? 0 : 8;
+                    this.roundRect(this.x + gap, this.y + gap, (this.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r);
                     ctx.fill();
-                    if (!selectedBlock.isGray) {
-                        ctx.fillStyle = `rgba(255,255,255,0.1)`;
-                        ctx.fillRect(origX + gap + 4, origY + gap + 4, (selectedBlock.w * CELL_SIZE) - gap * 2 - 8, (CELL_SIZE - gap * 2) / 2 - 2);
+                    ctx.globalAlpha = 1;
+
+                    if (!this.isGray) {
+                        ctx.fillStyle = `rgba(255,255,255,${alpha * 0.2})`;
+                        ctx.fillRect(this.x + gap + 4, this.y + gap + 4, (this.w * CELL_SIZE) - gap * 2 - 8, (CELL_SIZE - gap * 2) / 2 - 2);
                     }
-                    if (selectedBlock.hasChest && !selectedBlock.isGray) {
+
+                    // Gelo e Baú só aparecem se não for prévia
+                    if (this.hasChest && !this.isGray && !this.isPreview) {
                         if (emojiImages.chest && emojiImages.chest.complete) {
                             const size = 24;
-                            ctx.drawImage(emojiImages.chest, origX + (selectedBlock.w * CELL_SIZE) / 2 - size / 2, origY + CELL_SIZE / 2 - size / 2, size, size);
+                            ctx.drawImage(emojiImages.chest, this.x + (this.w * CELL_SIZE) / 2 - size / 2, this.y + CELL_SIZE / 2 - size / 2, size, size);
                         } else {
-                            ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🎁', origX + (selectedBlock.w * CELL_SIZE) / 2, origY + CELL_SIZE / 2);
+                            ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🎁', this.x + (this.w * CELL_SIZE) / 2, this.y + CELL_SIZE / 2);
                         }
                     }
-                    if (selectedBlock.isFrozen && !selectedBlock.isGray) {
+                    if (this.isFrozen && !this.isGray && !this.isPreview) {
                         ctx.shadowBlur = 15; ctx.shadowColor = "#22d3ee"; ctx.fillStyle = 'rgba(165, 243, 252, 0.4)';
-                        selectedBlock.roundRect(origX + gap, origY + gap, (selectedBlock.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r); ctx.fill();
+                        this.roundRect(this.x + gap, this.y + gap, (this.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r); ctx.fill();
                         ctx.shadowBlur = 0;
 
                         if (emojiImages.ice && emojiImages.ice.complete) {
                             const size = 20;
-                            const totalW = size + 15;
-                            const startX = origX + (selectedBlock.w * CELL_SIZE) / 2 - totalW / 2;
-                            ctx.drawImage(emojiImages.ice, startX, origY + CELL_SIZE / 2 - size / 2, size, size);
+                            const totalW = size + 15; // Image + text width estimate
+                            const startX = this.x + (this.w * CELL_SIZE) / 2 - totalW / 2;
+                            ctx.drawImage(emojiImages.ice, startX, this.y + CELL_SIZE / 2 - size / 2, size, size);
                             ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-                            ctx.fillText(selectedBlock.iceHp, startX + size + 2, origY + CELL_SIZE / 2);
+                            ctx.fillText(this.iceHp, startX + size + 2, this.y + CELL_SIZE / 2);
                         } else {
                             ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                            ctx.fillText(`🧊${selectedBlock.iceHp}`, origX + (selectedBlock.w * CELL_SIZE) / 2, origY + CELL_SIZE / 2);
+                            ctx.fillText(`🧊${this.iceHp}`, this.x + (this.w * CELL_SIZE) / 2, this.y + CELL_SIZE / 2);
                         }
                     }
-                    let dropR = selectedBlock.targetR;
-                    while (dropR < ROWS - 1) {
-                        const nextR = dropR + 1;
-                        const hasCollision = blocks.some(b => { if (b === selectedBlock) return false; if (b.targetR !== nextR) return false; return !(idealC + selectedBlock.w <= b.c || b.c + b.w <= idealC); });
-                        if (!hasCollision) dropR = nextR; else break;
-                    }
-                    ctx.globalAlpha = 0.3; ctx.fillStyle = selectedBlock.color; ctx.setLineDash([]);
-                    ctx.fillRect(idealC * CELL_SIZE + 4, dropR * CELL_SIZE + 4, (selectedBlock.w * CELL_SIZE) - 8, CELL_SIZE - 8);
-                    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.shadowColor = "#ffffff"; ctx.shadowBlur = 10;
-                    ctx.strokeRect(idealC * CELL_SIZE + 4, dropR * CELL_SIZE + 4, (selectedBlock.w * CELL_SIZE) - 8, CELL_SIZE - 8);
-                    ctx.restore();
                 }
-                blocks.forEach(b => b.draw());
-                nextRowBlocks.forEach(b => { ctx.save(); ctx.globalAlpha = 0.4; const py = (ROWS * CELL_SIZE) + 5 - (b.targetR * CELL_SIZE); b.draw(py); ctx.restore(); });
-                for (let i = particles.length - 1; i >= 0; i--) {
-                    let p = particles[i];
-                    if (!isPaused) {
-                        p.x += p.vx; p.y += p.vy; p.life -= 0.02;
-                    }
-                    ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4);
-                    if (p.life <= 0) particles.splice(i, 1);
-                }
-                ctx.globalAlpha = 1;
-                animationFrameId = requestAnimationFrame(loop);
+                roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
             }
-        }
 
-        restartBtn.addEventListener('click', () => location.reload());
+            function loadGame() {
+                const savedData = localStorage.getItem('dropdom_saved_game');
+                if (!savedData) return false;
 
-        // Iniciar
-        resizeCanvas();
-        initGame(); // Inicia direto
-    </script>
+                try {
+                    const state = JSON.parse(savedData);
+
+                    // Parar frames e intervalos ativos
+                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                    if (shieldInterval) clearInterval(shieldInterval);
+                    if (clockInterval) clearInterval(clockInterval);
+                    stopMatchTimer();
+
+                    // Restaurar pontuacao e contadores
+                    score = state.score || 0;
+                    wizardCharge = state.wizardCharge || 0;
+                    turnCounter = state.turnCounter || 0;
+                    matchSeconds = state.matchSeconds || 0;
+
+                    // Restaurar inventario
+                    inventory = state.inventory || { hammer: 0, tractor: 0, lightning: 0, fire: 0, superfire: 0, dragon: 0, glove: 0, marreta: 0, relogio: 0 };
+
+                    // Reconstruir blocos
+                    blocks = [];
+                    if (state.blocks) {
+                        state.blocks.forEach(bData => {
+                            const b = new Block(bData.c, bData.r, bData.w, bData.isPreview);
+                            b.targetR = bData.targetR;
+                            b.color = bData.color;
+                            b.isFrozen = bData.isFrozen;
+                            b.iceHp = bData.iceHp;
+                            b.hasChest = bData.hasChest;
+                            b.isGray = bData.isGray;
+                            b.x = bData.c * CELL_SIZE;
+                            b.y = bData.r * CELL_SIZE;
+                            blocks.push(b);
+                        });
+                    }
+
+                    // Reconstruir blocos de previa
+                    nextRowBlocks = [];
+                    if (state.nextRowBlocks) {
+                        state.nextRowBlocks.forEach(bData => {
+                            const b = new Block(bData.c, bData.r, bData.w, bData.isPreview);
+                            b.targetR = bData.targetR;
+                            b.color = bData.color;
+                            b.isFrozen = bData.isFrozen;
+                            b.iceHp = bData.iceHp;
+                            b.hasChest = bData.hasChest;
+                            b.isGray = bData.isGray;
+                            b.x = bData.c * CELL_SIZE;
+                            b.y = bData.r * CELL_SIZE;
+                            nextRowBlocks.push(b);
+                        });
+                    } else {
+                        generateNextPreview();
+                    }
+
+                    // Restaurar escudo do mago se ativo
+                    wizardShieldActive = !!state.wizardShieldActive;
+                    wizardShieldTime = state.wizardShieldTime || 0;
+                    if (wizardShieldActive && wizardShieldTime > 0) {
+                        updateWizardUI();
+                        wizardTimerEl.textContent = `${wizardShieldTime}s`;
+                        shieldInterval = setInterval(() => {
+                            if (isPaused) return;
+                            wizardShieldTime--;
+                            wizardTimerEl.textContent = `${wizardShieldTime}s`;
+                            if (wizardShieldTime <= 0) {
+                                wizardShieldActive = false;
+                                clearInterval(shieldInterval);
+                                updateWizardUI();
+                                saveData();
+                            }
+                        }, 1000);
+                    } else {
+                        wizardShieldActive = false;
+                        updateWizardUI();
+                    }
+
+                    // Restaurar relogio se ativo
+                    clockActive = !!state.clockActive;
+                    clockTime = state.clockTime || 0;
+                    if (clockActive && clockTime > 0) {
+                        clockContainerEl.classList.remove('hidden');
+                        clockTimerEl.textContent = `${clockTime}s`;
+                        clockInterval = setInterval(() => {
+                            if (isPaused) return;
+                            clockTime--;
+                            if (clockTime > 0) {
+                                clockTimerEl.textContent = `${clockTime}s`;
+                            } else {
+                                handleClockEnd();
+                            }
+                            saveData();
+                        }, 1000);
+                    } else {
+                        clockActive = false;
+                        clockContainerEl.classList.add('hidden');
+                    }
+
+                    // Resetar flags de controle
+                    isGameOverSequence = false;
+                    isProcessingTurn = false;
+                    isRefilling = false;
+                    selectedBlock = null;
+                    gameActive = true;
+                    isPaused = false;
+                    hasGameStarted = true;
+
+                    // Iniciar cronometro a partir do tempo salvo
+                    updateTimerDisplay();
+                    matchTimerInterval = setInterval(() => {
+                        if (gameActive && !isGameOverSequence && !isPaused) {
+                            matchSeconds++;
+                            updateTimerDisplay();
+                        }
+                    }, 1000);
+
+                    resetInactivityTimer();
+
+                    // Atualizar displays
+                    bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
+                    updateUI();
+                    updateInventoryUI();
+
+                    // Fechar overlays
+                    overlay.classList.add('hidden');
+                    overlay.style.opacity = '0';
+                    comboDisplayEl.style.opacity = '0';
+
+                    const pauseIcon = document.getElementById('pause-icon');
+                    const pauseTooltip = document.getElementById('pause-tooltip');
+                    const pauseOverlay = document.getElementById('pause-overlay');
+                    if (pauseIcon) pauseIcon.innerHTML = '<i class="fas fa-pause"></i>';
+                    if (pauseTooltip) pauseTooltip.textContent = 'Pausar';
+                    if (pauseOverlay) {
+                        pauseOverlay.style.opacity = '0';
+                        pauseOverlay.classList.add('hidden');
+                    }
+
+                    // Retomar loop do canvas
+                    loop();
+
+                    // Verificar estado preso
+                    checkStuckState();
+
+                    // Parse Twemojis
+                    twemoji.parse(document.body);
+
+                    showToast("Jogo carregado!");
+                    return true;
+                } catch (e) {
+                    console.error("Erro ao carregar jogo salvo:", e);
+                    localStorage.removeItem('dropdom_saved_game');
+                    return false;
+                }
+            }
+
+            function initGame() {
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                blocks = []; particles = []; score = 0; comboMultiplier = 0; wizardCharge = 0;
+                isGameOverSequence = false; wizardShieldActive = false; turnCounter = 0;
+                isProcessingTurn = false; isRefilling = false; selectedBlock = null;
+                hasGameStarted = true; isStuckMode = false;
+
+                isPaused = false;
+                const pauseIcon = document.getElementById('pause-icon');
+                const pauseTooltip = document.getElementById('pause-tooltip');
+                const pauseOverlay = document.getElementById('pause-overlay');
+                if (pauseIcon) pauseIcon.innerHTML = '<i class="fas fa-pause"></i>';
+                if (pauseTooltip) pauseTooltip.textContent = 'Pausar';
+                if (pauseOverlay) {
+                    pauseOverlay.style.opacity = '0';
+                    pauseOverlay.classList.add('hidden');
+                }
+
+                if (shieldInterval) clearInterval(shieldInterval);
+                bestScore = parseInt(localStorage.getItem('dropdom_best')) || 0;
+                inventory = { hammer: 0, tractor: 0, lightning: 0, fire: 0, superfire: 0, dragon: 0, glove: 0, marreta: 0, relogio: 0 };
+                if (clockInterval) clearInterval(clockInterval);
+                clockActive = false; clockTime = 0;
+                if (clockContainerEl) clockContainerEl.classList.add('hidden');
+                startMatchTimer();
+                resetInactivityTimer();
+
+                updateUI(); updateWizardUI(); updateInventoryUI();
+                generateNextPreview();
+                gameActive = true;
+                overlay.classList.add('hidden'); overlay.style.opacity = '0';
+                comboDisplayEl.style.opacity = '0';
+                toggleStuckUI(false);
+
+                loop();
+                isRefilling = true;
+                pushMultipleRows(6, () => { isRefilling = false; checkStuckState(); });
+                twemoji.parse(document.body);
+            }
+
+            function generateNextPreview() {
+                nextRowBlocks = [];
+                let isGap = new Array(COLS).fill(false);
+
+                // Determinar tamanhos dos dois espaços (gaps)
+                let s1 = Math.floor(Math.random() * 2) + 1; // 1 ou 2
+                let s2 = (s1 > 1) ? 1 : (Math.floor(Math.random() * 2) + 1); // Se s1 > 1, s2 deve ser 1. Senão, 1 ou 2.
+
+                // Posicionar o primeiro gap
+                let p1 = Math.floor(Math.random() * (COLS - s1 + 1));
+                for (let i = 0; i < s1; i++) isGap[p1 + i] = true;
+
+                // Encontrar posições válidas para o segundo gap (sem sobreposição)
+                let validP2 = [];
+                for (let i = 0; i <= COLS - s2; i++) {
+                    let overlap = false;
+                    for (let j = 0; j < s2; j++) {
+                        if (isGap[i + j]) { overlap = true; break; }
+                    }
+                    if (!overlap) validP2.push(i);
+                }
+
+                if (validP2.length > 0) {
+                    let p2 = validP2[Math.floor(Math.random() * validP2.length)];
+                    for (let i = 0; i < s2; i++) isGap[p2 + i] = true;
+                }
+
+                // Gerar blocos nos espaços restantes
+                let c = 0;
+                while (c < COLS) {
+                    if (isGap[c]) { c++; continue; }
+
+                    let maxPossibleW = 0;
+                    while (c + maxPossibleW < COLS && !isGap[c + maxPossibleW] && maxPossibleW < 4) {
+                        maxPossibleW++;
+                    }
+
+                    if (maxPossibleW > 0) {
+                        let w = Math.floor(Math.random() * maxPossibleW) + 1;
+                        const b = new Block(c, ROWS, w, true);
+                        b.y = canvas.height + CELL_SIZE * 2;
+                        nextRowBlocks.push(b);
+                        c += w;
+                    } else {
+                        c++;
+                    }
+                }
+
+                // Lógica de Probabilidade (A partir do Turno 1)
+                if (turnCounter > 1) { // Aumentado para turnCounter > 1 para dar uma folga inicial
+                    const rand = Math.random() * 100;
+                    if (rand < 40) {
+                        // 40% Apenas Gelo
+                        if (nextRowBlocks.length > 0) {
+                            const b = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
+                            b.isFrozen = true; b.iceHp = 1;
+                        }
+                    } else if (rand < 50) {
+                        // 10% Apenas Baú
+                        if (nextRowBlocks.length > 0) {
+                            const b = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
+                            b.hasChest = true;
+                        }
+                    } else if (rand < 60) {
+                        // 10% Gelo + Baú
+                        if (nextRowBlocks.length > 0) {
+                            const b1 = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
+                            b1.isFrozen = true; b1.iceHp = 1;
+                            const b2 = nextRowBlocks[Math.floor(Math.random() * nextRowBlocks.length)];
+                            b2.hasChest = true;
+                        }
+                    }
+                }
+            }
+
+            function pushNextRow(callback) {
+                turnCounter++;
+                blocks.forEach(b => b.targetR--);
+                nextRowBlocks.forEach(b => {
+                    b.r = ROWS; b.targetR = ROWS - 1; b.y = (ROWS + 1) * CELL_SIZE;
+                    b.isPreview = false; blocks.push(b);
+                });
+                generateNextPreview();
+                setTimeout(() => checkGravity(callback), 80);
+            }
+
+            function triggerPushChain(onComplete, isFirstPush = true) {
+                let linesBeforePush = turnLinesCleared;
+
+                if (!isFirstPush && blocks.some(b => b.targetR <= 1)) {
+                    if (onComplete) onComplete();
+                    return;
+                }
+
+                pushNextRow(() => {
+                    let linesFromPush = turnLinesCleared - linesBeforePush;
+                    if (linesFromPush > 0) {
+                        setTimeout(() => triggerPushChain(onComplete, false), 150);
+                    } else {
+                        if (onComplete) onComplete();
+                    }
+                });
+            }
+
+            function executeForceUp() {
+                if (isProcessingTurn || isRefilling) return;
+                toggleStuckUI(false);
+                isProcessingTurn = true;
+                turnLinesCleared = 0;
+                waitingForForceUp = true;
+                triggerPushChain(() => {
+                    updateWizardCharge(WIZARD_STEP);
+                    isProcessingTurn = false;
+                    waitingForForceUp = false;
+                    checkAutoRefill();
+                });
+            }
+
+            function checkGravity(callback, isFinalCheck = false) {
+                let moved = false;
+                blocks.sort((a, b) => a.targetR - b.targetR).forEach(b => {
+                    if (b.targetR < ROWS - 1 && !blocks.some(o => o.targetR === b.targetR + 1 && !(o.c >= b.c + b.w || o.c + o.w <= b.c))) {
+                        b.targetR++; moved = true;
+                    }
+                });
+
+                if (moved) {
+                    setTimeout(() => checkGravity(callback, isFinalCheck), 100);
+                } else {
+                    let corrected = false;
+                    for (let r = 0; r < ROWS; r++) {
+                        let occupied = new Array(COLS).fill(null);
+                        const rBlocks = blocks.filter(b => b.targetR === r);
+                        rBlocks.forEach(b => {
+                            let hasOverlap = false;
+                            for (let i = 0; i < b.w; i++) {
+                                const pos = b.c + i;
+                                if (pos >= COLS || occupied[pos] !== null) { hasOverlap = true; break; }
+                            }
+                            if (hasOverlap) {
+                                if (b.targetR < ROWS - 1) { b.targetR++; corrected = true; }
+                                else { blocks = blocks.filter(item => item !== b); corrected = true; }
+                            } else {
+                                for (let i = 0; i < b.w; i++) occupied[b.c + i] = b;
+                            }
+                        });
+                    }
+                    if (corrected) { setTimeout(() => checkGravity(callback, isFinalCheck), 50); return; }
+                    checkLines(callback, isFinalCheck);
+                }
+            }
+
+            function checkLines(callback, isFinalCheck = false) {
+                let linesToClear = [];
+                for (let r = 0; r < ROWS; r++) {
+                    let map = new Array(COLS).fill(0);
+                    blocks.filter(b => b.targetR === r).forEach(b => { for (let i = 0; i < b.w; i++) map[b.c + i] = 1; });
+                    if (map.every(v => v === 1)) linesToClear.push(r);
+                }
+
+                if (linesToClear.length > 0) {
+                    const linesCount = linesToClear.length;
+                    turnLinesCleared += linesCount;
+
+                    let roundPoints = 0;
+                    let blocksToRemove = [];
+
+                    linesToClear.forEach(r => {
+                        const rowBlocks = blocks.filter(b => b.targetR === r);
+                        rowBlocks.forEach(b => {
+                            if (b.isFrozen) {
+                                b.iceHp--;
+                                if (b.iceHp <= 0) { b.isFrozen = false; b.iceHp = 0; }
+                            } else {
+                                if (b.hasChest) giveChestReward(b.x + (b.w * CELL_SIZE / 2), b.y);
+                                createExplosion(b.x + b.w * CELL_SIZE / 2, b.y + CELL_SIZE / 2, b.color);
+                                blocksToRemove.push(b);
+                            }
+                        });
+                        roundPoints += 100;
+                    });
+
+                    if (blocksToRemove.length > 0) {
+                        playExplosionSound();
+                        blocks = blocks.filter(b => !blocksToRemove.includes(b));
+
+                        const multiplier = Math.max(1, turnLinesCleared);
+                        const totalPoints = roundPoints * multiplier;
+                        score += totalPoints;
+                        if (score > bestScore) bestScore = score;
+                        createFloatingText(canvas.width / 2 + 40, (linesToClear[0] * CELL_SIZE), `★ ${totalPoints}`, "#3b82f6");
+
+                        saveData();
+                        updateUI(true);
+
+                        setTimeout(() => checkGravity(callback, isFinalCheck), 250);
+                    } else {
+                        if (callback) callback();
+                    }
+
+                } else {
+                    if (blocks.some(b => b.targetR <= 0)) { gameOver(); return; }
+
+                    if (callback) {
+                        callback();
+                    } else {
+                        isProcessingTurn = false;
+                        setTimeout(() => { if (!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
+                        checkAutoRefill();
+                    }
+                }
+            }
+
+            // --- CORREÇÃO: Refill mantém até a linha 6 (índice 4 de baixo pra cima é 6 linhas ocupadas) ---
+            let currentDangerState = '';
+            function updateWarningUI() {
+                const activeRowIndices = new Set(blocks.map(b => b.targetR));
+                const maxRowIndex = blocks.length > 0 ? Math.min(...activeRowIndices) : ROWS;
+
+                let newState = '';
+                if (maxRowIndex <= 1 && maxRowIndex >= 0) newState = 'alert-red';
+                else if (maxRowIndex <= 4 && maxRowIndex > 1) newState = 'alert-yellow';
+
+                if (isProcessingTurn) {
+                    if (currentDangerState === 'alert-red') newState = 'alert-red';
+                    else if (currentDangerState === 'alert-yellow' && newState === '') newState = 'alert-yellow';
+                }
+
+                if (currentDangerState !== newState) {
+                    if (newState === 'alert-red' && musicaIniciada) {
+                        somDanger.currentTime = 0;
+                        somDanger.volume = masterVolume;
+                        somDanger.play().catch(() => { });
+                    } else if (currentDangerState === 'alert-red' && newState !== 'alert-red') {
+                        somDanger.pause();
+                        somDanger.currentTime = 0;
+                    }
+                    currentDangerState = newState;
+                    dangerOverlay.className = `absolute inset-0 pointer-events-none transition-all duration-300 z-20 rounded-xl ${newState}`;
+                }
+            }
+
+            function checkAutoRefill() {
+                if (isRefilling || isProcessingTurn) return;
+                const activeRowIndices = new Set(blocks.map(b => b.targetR));
+                const maxRowIndex = blocks.length > 0 ? Math.min(...activeRowIndices) : ROWS;
+
+                // Se o topo da pilha estiver abaixo da linha 6 (índices 7, 8, 9), sobe linhas
+                if (maxRowIndex > 4 || blocks.length === 0) {
+                    const rowsToAdd = maxRowIndex - 4; // Quantas linhas subir para chegar na 6 (índice 4)
+                    if (rowsToAdd > 0) {
+                        isRefilling = true; isProcessingTurn = true;
+                        pushMultipleRows(rowsToAdd, () => {
+                            isRefilling = false; isProcessingTurn = false;
+                            setTimeout(() => { comboDisplayEl.style.opacity = "0"; }, 1500);
+                            checkStuckState();
+                        });
+                    }
+                } else {
+                    checkStuckState();
+                }
+            }
+
+            function checkStuckState() {
+                if (isProcessingTurn || isRefilling || isGameOverSequence) return;
+                let canMove = false;
+                for (let b of blocks) {
+                    if (!b.isFrozen) {
+                        const canLeft = b.c > 0 && !blocks.some(o => o.targetR === b.targetR && o.c + o.w === b.c);
+                        const canRight = b.c + b.w < COLS && !blocks.some(o => o.targetR === b.targetR && o.c === b.c + b.w);
+                        if (canLeft || canRight) { canMove = true; break; }
+                    }
+                }
+                toggleStuckUI(!canMove);
+                saveData();
+            }
+
+            function toggleStuckUI(show) {
+                isStuckMode = show;
+                if (show) {
+                    choiceMessage.classList.remove('hidden');
+                    arrowPreview.classList.remove('hidden');
+                } else {
+                    choiceMessage.classList.add('hidden');
+                    arrowPreview.classList.add('hidden');
+                }
+            }
+
+            function pushMultipleRows(count, finalCallback) {
+                if (count <= 0) { if (finalCallback) finalCallback(); return; }
+                pushNextRow(() => { setTimeout(() => { pushMultipleRows(count - 1, finalCallback); }, 150); });
+            }
+
+            function updateWizardCharge(amt) {
+                if (wizardShieldActive) return;
+                wizardCharge = Math.min(WIZARD_MAX, wizardCharge + amt);
+                if (wizardCharge >= WIZARD_MAX) { wizardCharge = 0; triggerWizardSpell(); }
+                updateWizardUI();
+            }
+
+            function triggerWizardSpell() {
+                const eligible = blocks.filter(b => !b.isFrozen && b.targetR < ROWS && b !== selectedBlock);
+                if (eligible.length > 0) {
+                    const b = eligible[Math.floor(Math.random() * eligible.length)];
+                    b.isFrozen = true; b.iceHp = 2;
+                    showToast("O Feiticeiro lançou um feitiço!");
+                }
+                gameWrapperEl.classList.add('alert-freeze');
+                setTimeout(() => gameWrapperEl.classList.remove('alert-freeze'), 1000);
+                checkStuckState();
+            }
+
+            function updateWizardUI() {
+                wizardBarEl.style.width = `${(wizardCharge / WIZARD_MAX) * 100}%`;
+                wizardContainerEl.classList.toggle('shield-active', wizardShieldActive);
+                wizardTimerEl.classList.toggle('hidden', !wizardShieldActive);
+            }
+
+            function gameOver() {
+                if (isGameOverSequence) return;
+                gameActive = false; isGameOverSequence = true;
+                stopMatchTimer();
+                toggleStuckUI(false);
+                somDanger.pause();
+                somDanger.currentTime = 0;
+                overlay.classList.remove('hidden'); overlay.style.opacity = '1';
+                finalScoreEl.textContent = score; finalBestEl.textContent = bestScore;
+                somGameOver.currentTime = 0; somGameOver.volume = masterVolume; somGameOver.play().catch(() => { });
+                saveData();
+            }
+
+            function updateUI(anim = false) {
+                scoreEl.textContent = score; bestEl.textContent = bestScore;
+                if (turnLinesCleared >= 2) {
+                    if (comboHideTimer) clearTimeout(comboHideTimer);
+                    comboDisplayEl.style.top = `${(canvas.height / 2) - 80}px`;
+                    comboDisplayEl.style.left = `50%`;
+                    comboDisplayEl.style.transform = `translate(-50%, -50%)`;
+                    comboDisplayEl.innerHTML = `COMBO<br>x${turnLinesCleared}`;
+                    comboDisplayEl.style.opacity = "1";
+                    comboDisplayEl.classList.remove('combo-pulse');
+                    void comboDisplayEl.offsetWidth;
+                    comboDisplayEl.classList.add('combo-pulse');
+                }
+            }
+
+            function saveData() {
+                localStorage.setItem('dropdom_best', bestScore);
+                localStorage.setItem('dropdom_inventory', JSON.stringify(inventory));
+                if (gameActive && !isGameOverSequence) {
+                    const gameState = {
+                        blocks: blocks.map(b => ({
+                            c: b.c,
+                            r: b.r,
+                            w: b.w,
+                            targetR: b.targetR,
+                            color: b.color,
+                            isPreview: b.isPreview,
+                            isFrozen: b.isFrozen,
+                            iceHp: b.iceHp,
+                            hasChest: b.hasChest,
+                            isGray: b.isGray
+                        })),
+                        nextRowBlocks: nextRowBlocks.map(b => ({
+                            c: b.c,
+                            r: b.r,
+                            w: b.w,
+                            targetR: b.targetR,
+                            color: b.color,
+                            isPreview: b.isPreview,
+                            isFrozen: b.isFrozen,
+                            iceHp: b.iceHp,
+                            hasChest: b.hasChest,
+                            isGray: b.isGray
+                        })),
+                        score: score,
+                        wizardCharge: wizardCharge,
+                        wizardShieldActive: wizardShieldActive,
+                        wizardShieldTime: wizardShieldTime,
+                        clockActive: clockActive,
+                        clockTime: clockTime,
+                        matchSeconds: matchSeconds,
+                        turnCounter: turnCounter,
+                        inventory: inventory
+                    };
+                    localStorage.setItem('dropdom_saved_game', JSON.stringify(gameState));
+                } else {
+                    localStorage.removeItem('dropdom_saved_game');
+                }
+            }
+
+            canvas.addEventListener('mousedown', handleStart); canvas.addEventListener('touchstart', e => { e.preventDefault(); handleStart(e.touches[0]); });
+            window.addEventListener('mousemove', handleMove); window.addEventListener('touchmove', e => { e.preventDefault(); handleMove(e.touches[0]); });
+            window.addEventListener('mouseup', handleEnd); window.addEventListener('touchend', handleEnd);
+
+            function handleStart(e) {
+                if (!gameActive || isProcessingTurn || isRefilling || isPaused) return;
+                const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left, y = e.clientY - rect.top;
+
+                const c = Math.floor(x / CELL_SIZE), r = Math.floor(y / CELL_SIZE);
+                if (activeTool && activeTool !== 'glove') {
+                    handleTool(r, c);
+                    return;
+                }
+                const b = blocks.find(b => b.targetR === r && c >= b.c && c < b.c + b.w);
+                if (b) {
+                    if (b.isFrozen && activeTool !== 'glove') {
+                        showToast("Bloco Congelado!", "error");
+                        playErrorSound();
+                        return;
+                    }
+                    if (activeTool === 'glove' && !b.isFrozen) {
+                        cancelTool();
+                    }
+                    comboDisplayEl.style.opacity = "0";
+                    selectedBlock = b;
+                    dragStartX = x;
+                    blockStartX = b.x;
+                    originalC = b.c;
+                    playMoveSound();
+                } else if (activeTool === 'glove') {
+                    cancelTool();
+                }
+            }
+
+            function handleMove(e) {
+                if (!selectedBlock || isPaused) return;
+                const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left;
+                const diff = x - dragStartX; let newX = blockStartX + diff;
+                const boardMaxX = (COLS - selectedBlock.w) * CELL_SIZE;
+                let limitL = 0, limitR = boardMaxX;
+                blocks.forEach(b => {
+                    if (b !== selectedBlock && b.targetR === selectedBlock.targetR) {
+                        if (b.c < selectedBlock.c) limitL = Math.max(limitL, (b.c + b.w) * CELL_SIZE);
+                        else limitR = Math.min(limitR, b.c * CELL_SIZE - selectedBlock.w * CELL_SIZE);
+                    }
+                });
+                selectedBlock.x = Math.max(limitL, Math.min(newX, limitR));
+            }
+
+            function handleEnd() {
+                if (!selectedBlock || isPaused) return;
+                const idealC = Math.round(selectedBlock.x / CELL_SIZE);
+                const collision = blocks.some(b => {
+                    if (b === selectedBlock || b.targetR !== selectedBlock.targetR) return false;
+                    return !(idealC + selectedBlock.w <= b.c || b.c + b.w <= idealC);
+                });
+
+                if (!collision && idealC !== selectedBlock.c) {
+                    if (selectedBlock.isFrozen && activeTool === 'glove') {
+                        inventory['glove']--;
+                        saveData();
+                        cancelTool();
+                    }
+                    selectedBlock.c = idealC; selectedBlock.x = idealC * CELL_SIZE; selectedBlock = null;
+                    isProcessingTurn = true;
+                    toggleStuckUI(false);
+
+                    // NOVO: Reseta o contador de linhas destruídas no início do turno
+                    turnLinesCleared = 0;
+
+                    checkGravity(() => {
+                        if (clockActive) {
+                            isProcessingTurn = false;
+                            if (turnLinesCleared === 0 && !isRefilling && !waitingForForceUp) {
+                                updateWizardCharge(8);
+                            }
+                            setTimeout(() => { if (!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
+                        } else {
+                            triggerPushChain(() => {
+                                isProcessingTurn = false;
+
+                                // Se nenhuma linha foi destruída em todo o processo, sobe mana
+                                if (turnLinesCleared === 0 && !isRefilling && !waitingForForceUp) {
+                                    updateWizardCharge(8);
+                                }
+
+                                // Fade out do combo
+                                setTimeout(() => { if (!isProcessingTurn) comboDisplayEl.style.opacity = "0"; }, 1500);
+                                checkAutoRefill();
+                            });
+                        }
+                    }, false);
+                } else {
+                    selectedBlock.x = selectedBlock.c * CELL_SIZE; selectedBlock = null;
+                }
+            }
+
+            function loop() {
+                if (gameActive) {
+                    if (!isPaused) {
+                        updateWarningUI();
+                    }
+                    // Estilo Original
+                    ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 1;
+                    for (let i = 1; i < COLS; i++) { ctx.beginPath(); ctx.moveTo(i * CELL_SIZE, 0); ctx.lineTo(i * CELL_SIZE, canvas.height); ctx.stroke(); }
+                    for (let j = 1; j < ROWS; j++) { ctx.beginPath(); ctx.moveTo(0, j * CELL_SIZE); ctx.lineTo(canvas.width, j * CELL_SIZE); ctx.stroke(); }
+
+                    ctx.fillStyle = '#1e293b'; ctx.fillRect(0, ROWS * CELL_SIZE, canvas.width, CELL_SIZE + 5);
+                    ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, ROWS * CELL_SIZE); ctx.lineTo(canvas.width, ROWS * CELL_SIZE); ctx.stroke();
+
+                    if (selectedBlock) {
+                        const idealC = Math.round(selectedBlock.x / CELL_SIZE);
+                        ctx.save();
+                        ctx.globalAlpha = 0.1;
+                        const gap = 3, r = 8;
+                        const origX = originalC * CELL_SIZE;
+                        const origY = selectedBlock.targetR * CELL_SIZE;
+                        ctx.fillStyle = selectedBlock.isGray ? '#475569' : selectedBlock.color;
+                        ctx.shadowColor = selectedBlock.isGray ? 'transparent' : selectedBlock.color;
+                        ctx.shadowBlur = selectedBlock.isGray ? 0 : 8;
+                        selectedBlock.roundRect(origX + gap, origY + gap, (selectedBlock.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r);
+                        ctx.fill();
+                        if (!selectedBlock.isGray) {
+                            ctx.fillStyle = `rgba(255,255,255,0.1)`;
+                            ctx.fillRect(origX + gap + 4, origY + gap + 4, (selectedBlock.w * CELL_SIZE) - gap * 2 - 8, (CELL_SIZE - gap * 2) / 2 - 2);
+                        }
+                        if (selectedBlock.hasChest && !selectedBlock.isGray) {
+                            if (emojiImages.chest && emojiImages.chest.complete) {
+                                const size = 24;
+                                ctx.drawImage(emojiImages.chest, origX + (selectedBlock.w * CELL_SIZE) / 2 - size / 2, origY + CELL_SIZE / 2 - size / 2, size, size);
+                            } else {
+                                ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🎁', origX + (selectedBlock.w * CELL_SIZE) / 2, origY + CELL_SIZE / 2);
+                            }
+                        }
+                        if (selectedBlock.isFrozen && !selectedBlock.isGray) {
+                            ctx.shadowBlur = 15; ctx.shadowColor = "#22d3ee"; ctx.fillStyle = 'rgba(165, 243, 252, 0.4)';
+                            selectedBlock.roundRect(origX + gap, origY + gap, (selectedBlock.w * CELL_SIZE) - gap * 2, CELL_SIZE - gap * 2, r); ctx.fill();
+                            ctx.shadowBlur = 0;
+
+                            if (emojiImages.ice && emojiImages.ice.complete) {
+                                const size = 20;
+                                const totalW = size + 15;
+                                const startX = origX + (selectedBlock.w * CELL_SIZE) / 2 - totalW / 2;
+                                ctx.drawImage(emojiImages.ice, startX, origY + CELL_SIZE / 2 - size / 2, size, size);
+                                ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                                ctx.fillText(selectedBlock.iceHp, startX + size + 2, origY + CELL_SIZE / 2);
+                            } else {
+                                ctx.fillStyle = 'white'; ctx.font = `bold 18px Rajdhani`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                                ctx.fillText(`🧊${selectedBlock.iceHp}`, origX + (selectedBlock.w * CELL_SIZE) / 2, origY + CELL_SIZE / 2);
+                            }
+                        }
+                        let dropR = selectedBlock.targetR;
+                        while (dropR < ROWS - 1) {
+                            const nextR = dropR + 1;
+                            const hasCollision = blocks.some(b => { if (b === selectedBlock) return false; if (b.targetR !== nextR) return false; return !(idealC + selectedBlock.w <= b.c || b.c + b.w <= idealC); });
+                            if (!hasCollision) dropR = nextR; else break;
+                        }
+                        ctx.globalAlpha = 0.3; ctx.fillStyle = selectedBlock.color; ctx.setLineDash([]);
+                        ctx.fillRect(idealC * CELL_SIZE + 4, dropR * CELL_SIZE + 4, (selectedBlock.w * CELL_SIZE) - 8, CELL_SIZE - 8);
+                        ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.shadowColor = "#ffffff"; ctx.shadowBlur = 10;
+                        ctx.strokeRect(idealC * CELL_SIZE + 4, dropR * CELL_SIZE + 4, (selectedBlock.w * CELL_SIZE) - 8, CELL_SIZE - 8);
+                        ctx.restore();
+                    }
+                    blocks.forEach(b => b.draw());
+                    nextRowBlocks.forEach(b => { ctx.save(); ctx.globalAlpha = 0.4; const py = (ROWS * CELL_SIZE) + 5 - (b.targetR * CELL_SIZE); b.draw(py); ctx.restore(); });
+                    for (let i = particles.length - 1; i >= 0; i--) {
+                        let p = particles[i];
+                        if (!isPaused) {
+                            p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                        }
+                        ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4);
+                        if (p.life <= 0) particles.splice(i, 1);
+                    }
+                    ctx.globalAlpha = 1;
+                    animationFrameId = requestAnimationFrame(loop);
+                }
+            }
+
+            restartBtn.addEventListener('click', () => {
+                localStorage.removeItem('dropdom_saved_game'); // Garante que reiniciar limpa o save
+                location.reload();
+            });
+
+            // Event listeners do Modal de Continuar Jogo
+            const loadGameModal = document.getElementById('load-game-modal');
+            const btnContinueGame = document.getElementById('btn-continue-game');
+            const btnRestartGame = document.getElementById('btn-restart-game');
+
+            btnContinueGame.addEventListener('click', () => {
+                loadGameModal.classList.remove('opacity-100');
+                setTimeout(() => {
+                    loadGameModal.classList.add('hidden');
+                    loadGame();
+                }, 300);
+            });
+
+            btnRestartGame.addEventListener('click', () => {
+                loadGameModal.classList.remove('opacity-100');
+                setTimeout(() => {
+                    loadGameModal.classList.add('hidden');
+                    localStorage.removeItem('dropdom_saved_game');
+                    initGame();
+                }, 300);
+            });
+
+            // Iniciar
+            resizeCanvas();
+
+            // Verificar se há jogo salvo
+            const savedData = localStorage.getItem('dropdom_saved_game');
+            if (savedData) {
+                try {
+                    const state = JSON.parse(savedData);
+                    document.getElementById('saved-score').textContent = state.score || 0;
+                    document.getElementById('saved-time').textContent = formatTime(state.matchSeconds || 0);
+
+                    let itemCount = 0;
+                    if (state.inventory) {
+                        for (const key in state.inventory) {
+                            if (key !== 'shield') {
+                                itemCount += (state.inventory[key] || 0);
+                            }
+                        }
+                    }
+                    document.getElementById('saved-items').textContent = `${itemCount} item${itemCount !== 1 ? 's' : ''}`;
+
+                    loadGameModal.classList.remove('hidden');
+                    void loadGameModal.offsetWidth;
+                    loadGameModal.classList.add('opacity-100');
+                } catch (e) {
+                    console.error("Erro ao ler dados salvos:", e);
+                    localStorage.removeItem('dropdom_saved_game');
+                    initGame();
+                }
+            } else {
+                initGame();
+            }
+        </script>
 </body>
 
 </html>
